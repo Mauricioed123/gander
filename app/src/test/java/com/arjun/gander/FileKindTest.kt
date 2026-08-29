@@ -78,6 +78,7 @@ class FileKindTest {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         const val MIME_PPTX =
             "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        const val MIME_ODS = "application/vnd.oasis.opendocument.spreadsheet"
     }
 
     @Test
@@ -155,6 +156,7 @@ class FileKindTest {
             MIME_XLSX to XLSX,
             "application/vnd.ms-excel" to XLSX,
             "text/csv" to XLSX,
+            MIME_ODS to XLSX,
             MIME_PPTX to PPTX,
             "image/png" to IMAGE_WEB,
             "text/plain" to TEXT,
@@ -171,6 +173,17 @@ class FileKindTest {
      * tiling view, because the tiling view needs a region decoder and this
      * could be any of the formats only Chromium reads.
      */
+    /**
+     * .ods has been in the extension set and both intent filters since 1.7,
+     * but not in the MIME fallback, so a spreadsheet shared with no filename
+     * on it was offered a viewer and then refused one.
+     */
+    @Test
+    fun openDocumentSpreadsheetsRouteByMimeAsWellAsByExtension() {
+        assertThat(FileKind.detect("ods", null)).isEqualTo(XLSX)
+        assertThat(FileKind.detect("", MIME_ODS)).isEqualTo(XLSX)
+    }
+
     @Test
     fun imagesByMimeGoToTheWebViewer() {
         assertThat(FileKind.detect("", "image/jpeg")).isEqualTo(IMAGE_WEB)

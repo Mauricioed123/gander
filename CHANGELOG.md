@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- OpenDocument spreadsheets shared without a filename open instead of being refused. Gander
+  has offered to open `.ods` since 1.7 and lists it everywhere it lists formats, but it
+  recognised one by its extension only. A file shared straight from a mail client or a chat
+  app often arrives with a content type and no name on it, and those were being shown the
+  "cannot open this" card by the very app that had just offered to open them.
 - PDFs have text in them now, as far as the rest of the app is concerned. Pages were drawn
   as pictures and nothing else, so there was nothing to select, nothing to copy, nothing for
   a screen reader to read out and nothing for the search box to look through, which is why
