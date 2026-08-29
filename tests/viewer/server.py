@@ -92,6 +92,11 @@ class ViewerServer:
                 pass  # the test output is quiet unless something fails
 
             def _send(self, status, body, headers):
+                # Recorded against the request this is answering, so a test can
+                # tell "asked for and got it" from "asked for and got a 404".
+                if state.requests:
+                    state.requests[-1]["status"] = status
+                    state.requests[-1]["bytes"] = len(body)
                 self.send_response(status)
                 for k, v in headers.items():
                     self.send_header(k, v)
@@ -101,7 +106,12 @@ class ViewerServer:
 
             def do_GET(self):
                 path = self.path.split("?", 1)[0]
-                state.requests.append((path, self.headers.get("Range")))
+                state.requests.append({
+                    "path": path,
+                    "range": self.headers.get("Range"),
+                    "status": None,
+                    "bytes": 0,
+                })
 
                 if path.startswith("/doc/"):
                     return self._document()
@@ -173,10 +183,17 @@ class ViewerServer:
         return f"{self.origin}/assets/viewer/{page}?" + "&".join(query)
 
     def ranged_requests(self):
-        return [r for r in self.state.requests if r[0].startswith("/doc/") and r[1]]
+        return [r for r in self.state.requests
+                if r["path"].startswith("/doc/") and r["range"]]
 
     def full_requests(self):
-        return [r for r in self.state.requests if r[0].startswith("/doc/") and not r[1]]
+        return [r for r in self.state.requests
+                if r["path"].startswith("/doc/") and not r["range"]]
+
+    def served(self, fragment):
+        """Requests whose path contains [fragment] and which were answered."""
+        return [r for r in self.state.requests
+                if fragment in r["path"] and r["status"] == 200]
 
     def stop(self):
         self.httpd.shutdown()

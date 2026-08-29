@@ -123,12 +123,25 @@ def test_chinese_text_renders_rather_than_vanishing(viewer, page):
     )
 
 
-def test_the_cmap_tables_are_actually_fetched(viewer, page, server):
+def test_the_cmap_tables_are_actually_fetched_and_found(viewer, page, server):
+    """
+    Asked for *and* answered. pdf.js requests the table either way, so a test
+    that only checks the request still passes with the whole directory
+    deleted, which is the exact regression it exists to catch.
+    """
     viewer("pdf.html", "cjk.pdf")
     wait_for_pdf(page)
     page.wait_for_timeout(500)
-    asked = [path for path, _ in server.state.requests if "/cmaps/" in path]
+
+    asked = [r for r in server.state.requests if "/cmaps/" in r["path"]]
     assert asked, "no CMap table was requested; the CJK font was drawn some other way"
+
+    found = server.served("/cmaps/")
+    assert found, (
+        "every CMap request was refused: "
+        f"{[(r['path'], r['status']) for r in asked][:3]}"
+    )
+    assert all(r["bytes"] > 0 for r in found)
 
 
 # ---------------------------------------------------------------------------
