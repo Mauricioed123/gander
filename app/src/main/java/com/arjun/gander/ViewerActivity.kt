@@ -631,7 +631,7 @@ class ViewerActivity : AppCompatActivity() {
                 entry.error = getString(R.string.page_out_of_range, total)
             } else {
                 // Straight down the channel search uses. See PortFinder for the shape.
-                searchPort?.postMessage(WebMessageCompat("g$n"))
+                searchPort?.postMessage(WebMessageCompat(PortCommand.goToPage(n)))
                 dialog.dismiss()
             }
         }
@@ -1036,13 +1036,13 @@ class ViewerActivity : AppCompatActivity() {
         }
         override fun query(q: String) {
             pendingQuery = q
-            send("q$q")
+            send(PortCommand.query(q))
         }
-        override fun next() = send("n")
-        override fun prev() = send("p")
+        override fun next() = send(PortCommand.next())
+        override fun prev() = send(PortCommand.prev())
         override fun clear() {
             pendingQuery = ""
-            send("c")
+            send(PortCommand.clear())
         }
     }
 
@@ -1074,33 +1074,27 @@ class ViewerActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()),
             object : WebMessagePortCompat.WebMessageCallbackCompat() {
                 override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
-                    val said = message?.data?.split(" ") ?: return
-                    // Tagged, and read first. The search message below is three bare
-                    // numbers and is left exactly as it was; "page" is not an integer,
-                    // so it was already being dropped there before this branch existed.
-                    if (said.size == 3 && said[0] == "page") {
-                        val n = said[1].toIntOrNull() ?: return
-                        val of = said[2].toIntOrNull() ?: return
-                        if (n < 1 || of < 1 || n > of) return
-                        if (pageTotal == 0) goToPageItem?.isVisible = true
-                        pageAt = n
-                        pageTotal = of
-                        setPageIndicatorText()
-                        showPageIndicator()
-                        return
+                    when (val said = parsePortMessage(message?.data)) {
+                        is PortMessage.Page -> {
+                            if (pageTotal == 0) goToPageItem?.isVisible = true
+                            pageAt = said.n
+                            pageTotal = said.of
+                            setPageIndicatorText()
+                            showPageIndicator()
+                        }
+                        is PortMessage.SearchCount ->
+                            onSearchCount?.invoke(said.at, said.total, said.done)
+                        // Anything else came from the document rather than from
+                        // the renderer, and is dropped without a word.
+                        null -> Unit
                     }
-                    if (said.size != 3) return
-                    val at = said[0].toIntOrNull() ?: return
-                    val total = said[1].toIntOrNull() ?: return
-                    if (at < 0 || total < 0) return
-                    onSearchCount?.invoke(at, total, said[2] == "1")
                 }
             })
         searchPort = mine
         WebViewCompat.postWebMessage(
             web, WebMessageCompat("vw-search-port", arrayOf(ends[1])), Uri.parse("*"))
         // Anything typed while there was nowhere to send it.
-        if (pendingQuery.isNotEmpty()) mine.postMessage(WebMessageCompat("q$pendingQuery"))
+        if (pendingQuery.isNotEmpty()) mine.postMessage(WebMessageCompat(PortCommand.query(pendingQuery)))
     }
 
     private fun closeSearchChannel() {
