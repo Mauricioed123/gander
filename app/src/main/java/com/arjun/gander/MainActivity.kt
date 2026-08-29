@@ -84,7 +84,9 @@ class MainActivity : AppCompatActivity() {
      * Single threaded on purpose: one folder is being looked at at a time, and it keeps
      * treeLabels below confined to one thread without a lock.
      */
-    private val loader = Executors.newSingleThreadExecutor()
+    @androidx.annotation.VisibleForTesting
+    internal var loader: java.util.concurrent.ExecutorService =
+        Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
 
     /**
