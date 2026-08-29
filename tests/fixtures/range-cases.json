@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "Range header cases, read by both sides of the suite.",
+    "",
+    "DocRangeTest reads this to check ViewerActivity's parser, and",
+    "tests/viewer/test_range_parity.py reads it to check that the Python",
+    "server standing in for ViewerActivity answers the same way. The harness",
+    "is only worth anything if it behaves like the app it imitates, and two",
+    "implementations of one rule drift silently otherwise.",
+    "",
+    "expected is [start, end], or null to serve the whole document."
+  ],
+  "cases": [
+    { "header": "bytes=0-99",          "total": 1000, "expected": [0, 99] },
+    { "header": "bytes=100-199",       "total": 1000, "expected": [100, 199] },
+    { "header": "bytes=999-999",       "total": 1000, "expected": [999, 999] },
+    { "header": "bytes=100-",          "total": 1000, "expected": [100, 999] },
+    { "header": "bytes=0-",            "total": 1000, "expected": [0, 999] },
+    { "header": "bytes=0-5000",        "total": 1000, "expected": [0, 999] },
+    { "header": "bytes=0-99,200-299",  "total": 1000, "expected": [0, 99] },
+    { "header": "bytes= 10 - 20 ",     "total": 1000, "expected": [10, 20] },
+
+    { "header": "bytes=1000-1099",     "total": 1000, "expected": null },
+    { "header": "bytes=5000-",         "total": 1000, "expected": null },
+    { "header": "bytes=500-100",       "total": 1000, "expected": null },
+    { "header": "bytes=-500",          "total": 1000, "expected": null },
+
+    { "header": "",                    "total": 1000, "expected": null },
+    { "header": "bytes=",              "total": 1000, "expected": null },
+    { "header": "bytes=abc-def",       "total": 1000, "expected": null },
+    { "header": "items=0-99",          "total": 1000, "expected": null },
+    { "header": "0-99",                "total": 1000, "expected": null },
+
+    { "header": "bytes=0-99",          "total": 0,    "expected": null },
+    { "header": "bytes=0-99",          "total": -1,   "expected": null }
+  ]
+}
