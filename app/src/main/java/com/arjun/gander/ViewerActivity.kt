@@ -74,8 +74,6 @@ class ViewerActivity : AppCompatActivity() {
         const val EXTRA_PATH = "path"
         private const val STATE_COPY_SOURCE = "copy_source"
         private const val ASSET_HOST = "appassets.androidplatform.net"
-        private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
-        private const val DOWNLOADS_AUTHORITY = "com.android.providers.downloads.documents"
 
         /**
          * How long the page readout stays up after the last scroll, and how long it
@@ -323,55 +321,18 @@ class ViewerActivity : AppCompatActivity() {
      * Null when the source provider does not expose a real filesystem location,
      * which hides the menu item.
      */
-    private fun containingFolder(uri: Uri): Uri? = runCatching {
-        when {
-            uri.scheme == "file" ->
-                File(uri.path!!).parent?.let { folderDocUri(it) }
-            uri.authority == EXTERNAL_STORAGE_AUTHORITY -> {
-                // Document id is "volume:relative/path"; drop the file segment
-                val docId = DocumentsContract.getDocumentId(uri)
-                val volume = docId.substringBefore(':', "")
-                val path = docId.substringAfter(':', "")
-                if (volume.isEmpty() || path.isEmpty()) null
-                else DocumentsContract.buildDocumentUri(
-                    EXTERNAL_STORAGE_AUTHORITY,
-                    "$volume:${path.substringBeforeLast('/', "")}"
-                )
-            }
-            uri.authority == DOWNLOADS_AUTHORITY -> {
-                val docId = DocumentsContract.getDocumentId(uri)
-                if (docId.startsWith("raw:")) {
-                    File(docId.removePrefix("raw:")).parent?.let { folderDocUri(it) }
-                } else {
-                    // Opaque ids (msf:42) at least live under Download
-                    DocumentsContract.buildDocumentUri(
-                        EXTERNAL_STORAGE_AUTHORITY, "primary:Download"
-                    )
-                }
-            }
-            uri.authority == "media" ->
-                // Our read grant lets us ask MediaStore for the backing path
-                contentResolver.query(uri, arrayOf("_data"), null, null, null)?.use { c ->
-                    if (!c.moveToFirst()) null
-                    else c.getString(0)?.let { File(it).parent }?.let { folderDocUri(it) }
-                }
-            else -> null
+    /**
+     * The folder this document is in. The MediaStore lookup is supplied here
+     * because it needs a resolver; the rest is provider id string work and
+     * lives in StorageUris.kt.
+     */
+    private fun containingFolder(uri: Uri): Uri? = parentDocUri(
+        uri,
+        Environment.getExternalStorageDirectory().absolutePath
+    ) { mediaUri ->
+        contentResolver.query(mediaUri, arrayOf("_data"), null, null, null)?.use { c ->
+            if (c.moveToFirst()) c.getString(0) else null
         }
-    }.getOrNull()
-
-    /** Maps an absolute folder path to an ExternalStorageProvider document URI. */
-    private fun folderDocUri(path: String): Uri? {
-        val primary = Environment.getExternalStorageDirectory().absolutePath
-        val docId = when {
-            path.startsWith(primary) ->
-                "primary:" + path.removePrefix(primary).trimStart('/')
-            path.startsWith("/storage/") -> {
-                val rest = path.removePrefix("/storage/")
-                rest.substringBefore('/') + ":" + rest.substringAfter('/', "")
-            }
-            else -> return null
-        }
-        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, docId)
     }
 
     private fun openFolder(folder: Uri) {
