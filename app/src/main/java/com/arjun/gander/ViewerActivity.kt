@@ -78,19 +78,6 @@ class ViewerActivity : AppCompatActivity() {
         private const val DOWNLOADS_AUTHORITY = "com.android.providers.downloads.documents"
 
         /**
-         * Above this, a document is served in ranges rather than read whole.
-         *
-         * This is a memory threshold, not a speed one. Bulk and ranged loading were
-         * measured against each other at 0.2, 2.7, 8, 16, 32 and 53 MB on a Nothing
-         * Phone 2: below about 32 MB the difference had no consistent sign and stayed
-         * inside run-to-run noise, and only at 53 MB did ranging win repeatably, by
-         * around 80 ms. So anywhere in that band is equally defensible on speed, and
-         * the number is chosen instead for what it avoids holding in memory. 16 MB is
-         * comfortable to buffer on a low-end device; a 50 MB scan is not.
-         */
-        private const val RANGE_THRESHOLD_BYTES = 16L * 1024 * 1024
-
-        /**
          * Chromium major version the vendored pdf.js needs. Mozilla puts the legacy
          * build's floor at Chrome 125, and `lib/pdf.min.mjs` is pdfjs-dist 5.7.284
          * legacy. Below it, `pdf.html` says so instead of loading the renderer.
@@ -1522,13 +1509,6 @@ class ViewerActivity : AppCompatActivity() {
     }
 
     /**
-     * Whether to serve this document in ranges. Decided in one place because both
-     * the response headers and the page's choice of loader have to agree.
-     */
-    private fun useRanges(total: Long): Boolean =
-        total >= RANGE_THRESHOLD_BYTES
-
-    /**
      * Chromium major version of the WebView that will render the page.
      *
      * The user agent is asked first, because its Chrome/ token is the engine version
@@ -1582,33 +1562,10 @@ class ViewerActivity : AppCompatActivity() {
         return "&webview=$major&needs=$PDFJS_MIN_CHROMIUM_MAJOR" + if (locked) "&locked=1" else ""
     }
 
-    /** Content type for the document, from the extension rather than the provider. */
-    private fun documentMime(ext: String): String = when (ext) {
-        "svg" -> "image/svg+xml"
-        else -> MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-            ?: "application/octet-stream"
-    }
-
     /** Length in bytes, or -1 when the provider declines to say. */
     private fun documentLength(uri: Uri): Long = runCatching {
         contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length }
     }.getOrNull()?.takeIf { it >= 0 } ?: -1L
-
-    /**
-     * "bytes=start-end" resolved against a known total. Null means serve the whole
-     * thing: an unparseable header, an unsatisfiable one, or a provider that would
-     * not give us a length to range against.
-     */
-    private fun parseRange(header: String, total: Long): Pair<Long, Long>? {
-        if (total <= 0) return null
-        // Only the first range of a set; pdf.js never asks for more than one
-        val spec = header.substringAfter("bytes=", "").substringBefore(',').trim()
-        if (spec.isEmpty()) return null
-        val start = spec.substringBefore('-').trim().toLongOrNull() ?: return null
-        val end = spec.substringAfter('-').trim().toLongOrNull() ?: (total - 1)
-        if (start < 0 || start > end || start >= total) return null
-        return start to minOf(end, total - 1)
-    }
 
     /** Exactly [start, end], seeking to the offset rather than reading up to it. */
     private fun slice(uri: Uri, start: Long, end: Long): InputStream {
@@ -1619,32 +1576,6 @@ class ViewerActivity : AppCompatActivity() {
         runCatching { stream.channel.position(start) }
             .onFailure { runCatching { stream.skip(start) } }
         return LimitedInputStream(stream, end - start + 1, pfd)
-    }
-
-    /** Stops at [remaining] bytes, and closes the descriptor along with the stream. */
-    private class LimitedInputStream(
-        private val source: InputStream,
-        private var remaining: Long,
-        private val alsoClose: java.io.Closeable
-    ) : InputStream() {
-        override fun read(): Int {
-            if (remaining <= 0) return -1
-            return source.read().also { if (it >= 0) remaining-- }
-        }
-
-        override fun read(b: ByteArray, off: Int, len: Int): Int {
-            if (remaining <= 0) return -1
-            val n = source.read(b, off, minOf(len.toLong(), remaining).toInt())
-            if (n > 0) remaining -= n
-            return n
-        }
-
-        override fun available(): Int = minOf(source.available().toLong(), remaining).toInt()
-
-        override fun close() {
-            runCatching { source.close() }
-            runCatching { alsoClose.close() }
-        }
     }
 
     private fun matchParent() = FrameLayout.LayoutParams(
