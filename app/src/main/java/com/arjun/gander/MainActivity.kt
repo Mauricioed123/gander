@@ -460,12 +460,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun folderRows(crumb: Crumb): Screen {
-        data class Child(
-            val docId: String, val name: String, val mime: String,
-            val size: Long, val modified: Long
-        )
-
-        val children = mutableListOf<Child>()
+        val children = mutableListOf<ChildDoc>()
         val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
             crumb.treeUri, crumb.docId
         )
@@ -482,7 +477,7 @@ class MainActivity : AppCompatActivity() {
                 null, null, null
             )?.use { c ->
                 while (c.moveToNext()) {
-                    children += Child(
+                    children += ChildDoc(
                         c.getString(0), c.getString(1) ?: "?", c.getString(2) ?: "",
                         c.getLong(3), c.getLong(4)
                     )
@@ -490,18 +485,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // sortedWith and not sortedBy, for the reason homeRows gives: the selector runs
-        // on every comparison, so lowercase() there allocated some sixteen thousand
-        // strings on a folder of fifteen hundred files rather than none.
-        val byName = compareBy(String.CASE_INSENSITIVE_ORDER) { c: Child -> c.name }
-        val dirs = children
-            .filter { it.mime == DocumentsContract.Document.MIME_TYPE_DIR }
-            .filterNot { it.name.startsWith(".") }
-            .sortedWith(byName)
-        val files = children
-            .filter { it.mime != DocumentsContract.Document.MIME_TYPE_DIR }
-            .filterNot { it.name.startsWith(".") }
-            .sortedWith(byName)
+        val (dirs, files) = orderChildren(children)
 
         val rows = mutableListOf<Row>()
         dirs.forEach { d ->
@@ -553,40 +537,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * The two or three letters, and the colour behind them, for a file.
-     *
-     * Four of these moved when the app adopted the brand's terracotta primary. PPT sat
-     * about four degrees of hue from the new accent, so a PowerPoint tile and the app's
-     * own accent would have read as one signal; it moved to 16 degrees off. The other
-     * three moved because they were already failing WCAG AA against their own white
-     * label, which is what Play's pre-launch accessibility scan looks for: DIR was the
-     * worst thing in the app at 1.97:1, FILE at 3.35 and PPT at 3.92, against the 4.5
-     * that 12sp bold needs. They now measure 4.90, 4.65 and 5.20.
-     *
-     * PDF moved too, from 4.98 to 6.54. It was already passing, and it sits close to the
-     * accent, but Thumbs draws a real first page over it whenever it can, so the tile is
-     * mostly a placeholder. Mostly: a document that will not render, an encrypted one
-     * above all, falls back to this badge and keeps it.
-     *
-     * The rest are untouched. Every one of them clears AA and sits at least 82 degrees
-     * of hue away from the accent.
-     */
-    private fun badgeFor(name: String, mime: String?): Pair<String, Int> {
-        val ext = name.substringAfterLast('.', "").lowercase()
-        return when (FileKind.detect(ext, mime)) {
-            FileKind.PDF -> PDF_BADGE
-            FileKind.DOCX -> DOC_BADGE
-            FileKind.XLSX -> XLS_BADGE
-            FileKind.PPTX -> PPT_BADGE
-            FileKind.IMAGE, FileKind.IMAGE_WEB -> IMG_BADGE
-            FileKind.PLAYER -> if (FileKind.isAudioExt(ext)) AUD_BADGE else VID_BADGE
-            FileKind.MD -> MD_BADGE
-            FileKind.TEXT -> TXT_BADGE
-            FileKind.UNSUPPORTED -> "FILE" to 0xFF607884.toInt()
-        }
-    }
-
-    /**
      * Draws the nine tiles of the welcome grid, from the same pairs [badgeFor] returns.
      *
      * The grid is filled here rather than declared nine times in the layout so that a new
@@ -615,60 +565,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
-        /**
-         * The badge for each file kind, named once.
-         *
-         * These used to be nine hex literals inside badgeFor. They are pulled out because
-         * the welcome grid draws the same nine, and two hardcoded copies of a palette drift
-         * the first time one is edited. Plain vals rather than consts: 0xFFB3261E.toInt()
-         * is not a compile-time constant expression, which is why DIR_COLOR below has
-         * always been one too.
-         */
-        val PDF_BADGE = "PDF" to 0xFFB3261E.toInt()
-        val DOC_BADGE = "DOC" to 0xFF1565C0.toInt()
-        val XLS_BADGE = "XLS" to 0xFF2E7D32.toInt()
-        val PPT_BADGE = "PPT" to 0xFFB25000.toInt()
-        val IMG_BADGE = "IMG" to 0xFF7B1FA2.toInt()
-        val VID_BADGE = "VID" to 0xFFAD1457.toInt()
-        val AUD_BADGE = "AUD" to 0xFF00838F.toInt()
-        val MD_BADGE = "MD" to 0xFF455A64.toInt()
-        val TXT_BADGE = "TXT" to 0xFF616161.toInt()
-
-        /**
-         * What the welcome grid shows, in reading order.
-         *
-         * Kinds rather than formats, which is what makes the grid hold still: FileKind maps
-         * 77 extensions onto these nine, so adding .odt or .rst or another codec changes
-         * nothing here. A tenth tile means a tenth renderer, and the layout's columnCount is
-         * the number to revisit when that happens.
-         *
-         * FILE is deliberately absent. It is what an unsupported file falls back to, and
-         * this grid is a list of what Gander opens.
-         *
-         * One thing here does not update itself: welcome_formats_spoken is the sentence a
-         * screen reader hears in place of these tiles, and it is prose. Adding a kind means
-         * editing that string too, or the grid and its description stop agreeing.
-         */
-        val WELCOME_BADGES = listOf(
-            PDF_BADGE, DOC_BADGE, XLS_BADGE,
-            PPT_BADGE, IMG_BADGE, VID_BADGE,
-            AUD_BADGE, MD_BADGE, TXT_BADGE,
-        )
-
-        val DIR_COLOR = 0xFF8A6D1F.toInt()
-
-        /**
-         * The brand accent, and the one badge that is an action rather than a file type.
-         *
-         * Fixed rather than ?attr/colorPrimary, which is what it looks like it should be.
-         * Material inverts primary for dark mode, to #FFB39E, and the label on every
-         * badge is a hardcoded white in row_item.xml: a white "+" on that measured
-         * 1.72:1, worse than the amber DIR badge this release exists partly to fix.
-         * Pinned to the light tone it stays 6.54:1 in both themes, and against the night
-         * surface it sits at 2.83 against the DOC badge's 3.22, so it reads as a shape
-         * exactly like its neighbours.
-         */
-        val ADD_COLOR = 0xFFAF2D18.toInt()
         const val LICENCES_ASSET = "licences.md"
 
         /** How long a folder may take to read before the screen says anything about it. */
