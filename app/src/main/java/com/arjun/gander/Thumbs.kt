@@ -66,6 +66,18 @@ object Thumbs {
         }
     }
 
+    /**
+     * Drops the in-memory cache.
+     *
+     * This object is process-wide and its LruCache outlives any one screen,
+     * which is what makes it useful and also what makes it leak between unit
+     * tests. Nothing in the app calls this.
+     */
+    @androidx.annotation.VisibleForTesting
+    internal fun resetForTests() {
+        mem.evictAll()
+    }
+
     fun evict(context: Context, uriString: String) {
         val key = md5(uriString)
         mem.remove(key)
