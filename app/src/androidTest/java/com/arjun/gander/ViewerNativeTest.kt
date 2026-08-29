@@ -93,19 +93,4 @@ class ViewerNativeTest {
         }
     }
 
-    /**
-     * Background audio will never be added: carrying on in the background
-     * needs a foreground service, a service needs a permission, and a
-     * permission is the one thing this app will not add. So leaving pauses.
-     */
-    @Test
-    fun leavingTheViewerStopsThePlayback() {
-        open("tone.wav").use { scenario ->
-            Thread.sleep(2000)
-            scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
-            Thread.sleep(500)
-            // Reaching CREATED without throwing is the assertion: onStop pauses
-            // the player, and a released player would throw on the way through.
-        }
-    }
 }

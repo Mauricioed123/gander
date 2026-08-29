@@ -17,6 +17,10 @@ android {
         versionName = "1.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // A device test that hangs blocks the whole nightly run behind it, and
+        // an emulator gives no sign of the difference between slow and stuck.
+        // Three minutes is far longer than the slowest of these needs.
+        testInstrumentationRunnerArguments["timeout_msec"] = "180000"
     }
 
     // The release keystore is intentionally not in the repo. Contributors without
