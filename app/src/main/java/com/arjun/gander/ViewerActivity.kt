@@ -795,14 +795,7 @@ class ViewerActivity : AppCompatActivity() {
         val extent = web.verticalExtent()
         if (extent <= 0) return
 
-        // Two thresholds rather than one. pptx.html reports itself finished as soon as
-        // the first slide exists and keeps appending for seconds after, so a single line
-        // here has the thumb appear, vanish and appear again while a deck loads.
-        thumbShown = when {
-            range > extent * 2 -> true
-            range < extent * 3 / 2 -> false
-            else -> thumbShown
-        }
+        thumbShown = thumbShown(range, extent, thumbShown)
         if (!thumbShown) {
             hideFastScrollNow()
             return
@@ -810,19 +803,14 @@ class ViewerActivity : AppCompatActivity() {
 
         val trackHeight = track.height
         if (trackHeight <= 0) return
-        // Proportional, with a floor. Proportional alone is two pixels on a 357-page
-        // document; a fixed height says nothing about how much is left in a short one.
         val floor = resources.getDimensionPixelSize(R.dimen.fast_scroll_thumb_min)
-        val height = maxOf(floor, (trackHeight.toLong() * extent / range).toInt())
-            .coerceAtMost(trackHeight)
+        val height = thumbHeight(trackHeight, extent, range, floor)
         if (thumb.layoutParams.height != height) {
             thumb.layoutParams = thumb.layoutParams.also { it.height = height }
         }
         if (!dragging) {
-            val travel = (trackHeight - height).toFloat()
-            val scrollable = (range - extent).toFloat()
             thumb.translationY =
-                if (scrollable > 0f) travel * (web.verticalOffset() / scrollable) else 0f
+                thumbOffset(trackHeight, height, web.verticalOffset(), range, extent)
         }
         showFastScroll()
         excludeThumbFromBackGesture()
@@ -835,10 +823,8 @@ class ViewerActivity : AppCompatActivity() {
         if (travel <= 0f) return
         val at = (y - grabOffset).coerceIn(0f, travel)
         thumb.translationY = at
-        val fraction = at / travel
-        val scrollable = web.verticalRange() - web.verticalExtent()
-        if (scrollable > 0) queueScroll((fraction * scrollable).toInt())
-        showDragReadout(fraction)
+        dragTarget(at, travel, web.verticalRange(), web.verticalExtent())?.let(::queueScroll)
+        showDragReadout(at / travel)
     }
 
     /**
