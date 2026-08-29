@@ -1,0 +1,9 @@
+# The viewer tests drive the shipped HTML in a real browser, because a text
+# layer, a canvas and a computed style are all things jsdom does not have.
+pytest==9.1.1
+pytest-playwright==0.9.0
+playwright==1.62.0
+Pillow==12.3.0
+# Builds the oversized documents the ranged-loading tests need, so they
+# do not have to be committed. Same library tests/fixtures uses.
+reportlab==5.0.0
