@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Gander has an automated test suite. There was none before this, and the way to check a
+  change was to build the app, sideload it and open files by hand. Three hundred and forty
+  tests now run on every push: the Kotlin that decides which renderer a file gets and how
+  it is served to that renderer, and the viewer pages themselves, driven in a real browser
+  against the same fixture documents. The PDF viewer gets most of the attention, because it
+  is the largest thing here and the one whose failures are quietest: a missing character
+  encoding table drops whole paragraphs from a page that otherwise looks complete, and
+  nothing anywhere reports an error. There is a test for that now.
 - OpenDocument spreadsheets shared without a filename open instead of being refused. Gander
   has offered to open `.ods` since 1.7 and lists it everywhere it lists formats, but it
   recognised one by its extension only. A file shared straight from a mail client or a chat
