@@ -71,6 +71,12 @@ jobs:
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
 
+      # Against app/lint-baseline.xml, so the 39 issues that were already here
+      # stay visible in the report without blocking anything, and a new one
+      # fails the build.
+      - name: Lint
+        run: ./gradlew lintDebug
+
       - name: Build debug APK
         run: ./gradlew assembleDebug
 

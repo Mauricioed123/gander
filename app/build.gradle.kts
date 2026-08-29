@@ -81,6 +81,26 @@ android {
         jvmTarget = "17"
     }
 
+    lint {
+        // Zero errors today and 39 warnings, frozen into the baseline below so
+        // that a new one fails the build while the existing ones stay visible
+        // in the report rather than blocking every change until they are all
+        // fixed. Several are accessibility warnings, which is the category
+        // Play's pre-launch report reads.
+        //
+        // Two of the frozen 39 are accessibility warnings. Frozen is not
+        // fixed, and they are worth coming back to.
+        //
+        // Regenerate after fixing some: delete app/lint-baseline.xml, run
+        // ./gradlew lintDebug (it fails once, on purpose, having written a new
+        // baseline), and read the diff before committing it.
+        baseline = file("lint-baseline.xml")
+        warningsAsErrors = true
+        // A lint failure should stop CI, not be buried in a report nobody opens
+        abortOnError = true
+        checkDependencies = false
+    }
+
     testOptions {
         unitTests {
             // Robolectric reads the merged manifest, the resource table and the
