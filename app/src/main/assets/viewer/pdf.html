@@ -960,8 +960,16 @@ var TILE_MARGIN = 0.2;
  */
 var TILE_MAX_PIXELS = 6e6;
 
-/* At most two, which is one for each page that can be on screen at the zooms where any
-   of this switches on. Three pages across a screen means a zoom below the gate. */
+/*
+ * A ceiling on how many pages may carry a tile at once.
+ *
+ * It does not bind, and that is worth writing down rather than discovering again. A page
+ * box plus its margin is about 1395 CSS px, and by the time the gate opens the visible
+ * height is around 1600 CSS px on a phone and less on a tablet, so the list this
+ * truncates has one or two pages in it and never three. It is here as a bound on a loop
+ * that reads geometry, not as a memory limit that is ever reached, and the tile tests
+ * deliberately do not try to exercise it.
+ */
 var MAX_TILES = 2;
 
 /*

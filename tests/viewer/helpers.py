@@ -85,3 +85,94 @@ def highlight_count(page, name="vw-find"):
         " ? CSS.highlights.get(n).size : 0",
         name,
     )
+
+
+# ---------------------------------------------------------------------------
+# Tiles: the sharp patch drawn over the part of a page the reader is looking at
+# ---------------------------------------------------------------------------
+
+TILES = "() => document.querySelectorAll('#pages .pg canvas.tile').length"
+
+
+def set_page_scale(page, factor):
+    """
+    Pinch, the way the WebView's compositor does it.
+
+    Chromium clamps this to the page's own maximum, so the scale that actually
+    took effect is read back rather than assumed: asking for 4 gives 3 here.
+    """
+    page.context.new_cdp_session(page).send(
+        "Emulation.setPageScaleFactor", {"pageScaleFactor": factor}
+    )
+    return page.evaluate("() => visualViewport.scale")
+
+
+def pan(page, dx, dy):
+    """
+    Drag the visual viewport, which is what moves the view while pinched in.
+
+    window.scrollTo moves the layout viewport and cannot go sideways here,
+    because the document is exactly as wide as that viewport.
+    """
+    page.context.new_cdp_session(page).send("Input.synthesizeScrollGesture", {
+        "x": 120, "y": 200, "xDistance": -dx, "yDistance": -dy,
+        "gestureSourceType": "touch",
+    })
+    page.wait_for_timeout(500)
+
+
+def tile_count(page):
+    return page.evaluate(TILES)
+
+
+def tiles(page):
+    """
+    Every tile, with its rect measured from the top left of its own page box.
+
+    The same space visible_rect() reports in, so the two can be compared without
+    anything in between to get wrong.
+    """
+    return page.evaluate(
+        "() => [...document.querySelectorAll('#pages .pg')].flatMap(pg => {"
+        "  const box = pg.getBoundingClientRect();"
+        "  return [...pg.querySelectorAll('canvas.tile')].map(t => {"
+        "    const r = t.getBoundingClientRect();"
+        "    return { px: t.width, py: t.height,"
+        "             x: r.left - box.left, y: r.top - box.top,"
+        "             w: r.width, h: r.height,"
+        "             boxW: box.width, boxH: box.height }; }); })"
+    )
+
+
+def visible_rect(page, index=0):
+    """
+    The part of one page the reader can see, in that page's own CSS px.
+
+    getBoundingClientRect is in the layout viewport, which pinching deliberately
+    leaves alone, and visualViewport says which part of that is on screen. So the
+    two intersect directly.
+    """
+    return page.evaluate(
+        "(i) => { const pg = document.querySelectorAll('#pages .pg')[i];"
+        "  const b = pg.getBoundingClientRect(), vv = visualViewport;"
+        "  const x = Math.max(b.left, vv.offsetLeft) - b.left;"
+        "  const y = Math.max(b.top, vv.offsetTop) - b.top;"
+        "  return { x, y,"
+        "    w: Math.min(b.right, vv.offsetLeft + vv.width) - b.left - x,"
+        "    h: Math.min(b.bottom, vv.offsetTop + vv.height) - b.top - y }; }",
+        index,
+    )
+
+
+def device_pixels_per_css_pixel(page):
+    """What the page derives its scale from: the screen width over what is visible."""
+    return page.evaluate(
+        "() => (visualViewport.width * devicePixelRatio * visualViewport.scale)"
+        " / visualViewport.width"
+    )
+
+
+def wait_for_tile(page, timeout=15000):
+    """A tile is debounced by 150 ms and then has to render, so it is waited for."""
+    page.wait_for_function(f"{TILES} >= 1", timeout=timeout)
+    return page

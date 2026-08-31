@@ -103,7 +103,7 @@ def fix_core_properties(doc) -> None:
 # ---------------------------------------------------------------------------
 
 def pdfs() -> None:
-    from reportlab.lib.pagesizes import A3, A4
+    from reportlab.lib.pagesizes import A3, A4, landscape
     from reportlab.lib.pdfencrypt import StandardEncryption
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.cidfonts import UnicodeCIDFont
@@ -173,9 +173,10 @@ def pdfs() -> None:
     c.save()
     written(OUT / "cjk.pdf")
 
-    # mixed-width.pdf: one A4 page then one A3. Both are rendered to the same
-    # CSS width today, so the A3 page gets half the effective resolution.
-    # That is issue #20, and the test pins the current behaviour.
+    # mixed-width.pdf: one A4 page then one A3, to pin that both lay out to the
+    # same CSS width. That normalisation was once thought to be issue #20; it is
+    # not, because a page shown at one width is equally sharp whatever its paper
+    # size. The blur was the single rasterisation, and dense-map.pdf tests it.
     c = new(OUT / "mixed-width.pdf", pagesize=A4)
     c.setFont("Helvetica", 24)
     c.drawString(72, 700, "A4 page")
@@ -186,6 +187,32 @@ def pdfs() -> None:
     c.showPage()
     c.save()
     written(OUT / "mixed-width.pdf")
+
+    # dense-map.pdf: A3 landscape carrying detail into every corner, which is
+    # what a tube map or a site plan is and what issue #20 was reported against.
+    # The tile tests need a page whose middle is not blank: a fixture with a
+    # line of text at the top correlates to nothing once you zoom past it, and
+    # a test comparing two blank regions agrees with itself perfectly.
+    c = new(OUT / "dense-map.pdf", pagesize=landscape(A3))
+    w, h = landscape(A3)
+    c.setLineWidth(0.25)
+    c.setStrokeColorRGB(0.78, 0.78, 0.84)
+    for x in range(0, int(w), 20):
+        c.line(x, 0, x, h)
+    for y in range(0, int(h), 20):
+        c.line(0, y, w, y)
+    c.setStrokeColorRGB(0.1, 0.2, 0.7)
+    c.setLineWidth(2)
+    for i in range(9):
+        c.line(60 + i * 130, 60, 60 + i * 130 + 300, h - 60)
+    c.setFillColorRGB(0, 0, 0)
+    c.setFont("Helvetica", 3.5)
+    for x in range(0, int(w), 100):
+        for y in range(0, int(h), 60):
+            c.drawString(x + 2, y + 2, f"St {x}/{y}")
+    c.showPage()
+    c.save()
+    written(OUT / "dense-map.pdf")
 
     # encrypted.pdf: the standard security handler, which is what nearly every
     # protected PDF in circulation uses and the only kind pdf.js can unlock.

@@ -145,15 +145,23 @@ def test_the_cmap_tables_are_actually_fetched_and_found(viewer, page, server):
 
 
 # ---------------------------------------------------------------------------
-# Issue #20: every page is rendered to the same width
+# Every page is laid out at one width, which is correct and is not issue #20
 # ---------------------------------------------------------------------------
 
 def test_pages_of_different_paper_sizes_render_to_one_width(viewer, page):
     """
-    Characterisation, not approval. An A3 page is normalised to the same CSS
-    width as an A4 one, so it is drawn at about half the effective resolution:
-    the "blurry PDF" of issue #20. Fixing that should turn this test red, and
-    it should then be rewritten rather than deleted.
+    This was written expecting the fix for issue #20 to turn it red. It did not,
+    and that is the interesting part.
+
+    A3 and A4 laying out to the same CSS width was thought to be the blur,
+    because an A3 page then carries half the document-space resolution. On
+    screen it makes no difference: both boxes are the same width, so both are
+    shown across the same device pixels and are equally sharp. Page size never
+    entered it. The blur was that a page is rasterised once, which
+    test_pdf_tiles.py now covers.
+
+    So this stays as it is, proving the layout it always proved, with the wrong
+    reason taken off it.
     """
     viewer("pdf.html", "mixed-width.pdf")
     wait_for_pdf(page, pages=2)
