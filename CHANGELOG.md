@@ -15,6 +15,24 @@
   recognised one by its extension only. A file shared straight from a mail client or a chat
   app often arrives with a content type and no name on it, and those were being shown the
   "cannot open this" card by the very app that had just offered to open them.
+- Zoomed-in PDFs are sharp. A page was drawn once at a fixed size, and pinching in
+  magnified that picture rather than drawing a better one, so anything taken past about
+  twice its fitted size went soft. That is why a tube map or a site plan was unreadable at
+  the magnification it actually needs. The part of the page you are looking at is now drawn
+  again at the zoom you are at, about a third of a second after you stop pinching, however
+  far in you go. Pages are also drawn at the screen's own resolution rather than at twice
+  it, now that they no longer need to hold spare detail for pinching, so each one keeps
+  about a third of the picture it used to.
+
+## 1.14 (2026-08-30)
+
+- The website asks for something now. A link to it rendered as a bare URL wherever it was
+  shared, because the page carried no preview card at all; it has one now, and so does the
+  privacy policy. Get it leads with joining the closed test rather than mentioning Play in
+  passing, the zero-permission section shows Android's own App info screen for Gander with
+  the permissions row greyed out and nothing behind it, four people are quoted on what they
+  made of it, and GitHub and LinkedIn are linked. The Play badge is already written into the
+  page behind a switch, so the day the listing goes live is a one-word edit to one file.
 - PDFs have text in them now, as far as the rest of the app is concerned. Pages were drawn
   as pictures and nothing else, so there was nothing to select, nothing to copy, nothing for
   a screen reader to read out and nothing for the search box to look through, which is why
@@ -133,6 +151,9 @@
   was nothing to tell you that you were reading a document with pieces taken out of it. The
   tables ship with the app now, all of them, so this holds for older documents as well as
   current ones and for all three scripts rather than the one that happened to be reported.
+  Carrying every table costs 1.6 MB on disk, and the download grows with it: the APK is
+  4.7 MB against 1.13's 3.7 MB. That is the price of not having to guess in advance which
+  scripts a reader is going to open.
 
 ## 1.13 (2026-08-25)
 
