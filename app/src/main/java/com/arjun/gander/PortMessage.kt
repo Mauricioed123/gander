@@ -32,6 +32,13 @@ internal object PortCommand {
 
     /** Go to a page, one based. Bounds are checked again inside the page. */
     fun goToPage(n: Int) = "g$n"
+
+    /**
+     * Turn the pages over, or back. The second verb here that is not about
+     * finding something, after [goToPage]; the channel is named for search
+     * because search is what it was opened for, not because that is all it says.
+     */
+    fun nightMode(on: Boolean) = if (on) "i1" else "i0"
 }
 
 /** What pdf.html sends back, once it has been read and found sound. */

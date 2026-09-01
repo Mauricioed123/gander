@@ -214,6 +214,49 @@ def pdfs() -> None:
     c.save()
     written(OUT / "dense-map.pdf")
 
+    # colours.pdf: everything night mode has to get right, in known values so a
+    # test can assert exact pixels rather than "darker".
+    #
+    # Page 1 is a document: white paper, near-black text, a saturated heading and
+    # a vector block, all of which turn over, plus a small image that must not.
+    # Page 2 is a scan: one image covering the whole page, which must turn over
+    # despite being an image, because that is what a scanned book is.
+    #
+    # Flat colours on purpose. A photograph would make the assertions sample
+    # noise, and what is being pinned here is which pixels the filter reached.
+    from PIL import Image
+    from reportlab.lib.utils import ImageReader
+
+    def block(rgb, size=(64, 64)):
+        return ImageReader(Image.new("RGB", size, rgb))
+
+    W, H = 400, 600
+    c = new(OUT / "colours.pdf", pagesize=(W, H))
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(0, 0, W, H, stroke=0, fill=1)
+    # Up in the top-left corner, so the first zoom tile lands on it and the tile
+    # path's own coordinate mapping is exercised rather than assumed.
+    c.drawImage(block((255, 0, 255)), 20, 420, width=100, height=100)
+    c.setFillColorRGB(20 / 255, 20 / 255, 20 / 255)
+    c.setFont("Helvetica", 14)
+    c.drawString(160, H - 60, "Body text")
+    c.setFillColorRGB(0, 119 / 255, 199 / 255)
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(160, H - 100, "Coloured heading")
+    c.setFillColorRGB(30 / 255, 150 / 255, 60 / 255)
+    c.rect(160, H - 200, 80, 60, stroke=0, fill=1)
+    c.drawImage(block((200, 30, 30)), 40, 120, width=180, height=180)
+    c.showPage()
+
+    scan = Image.new("RGB", (200, 300), (255, 255, 255))
+    for x in range(20, 180):
+        for y in range(40, 60):
+            scan.putpixel((x, y), (20, 20, 20))
+    c.drawImage(ImageReader(scan), 0, 0, width=W, height=H)
+    c.showPage()
+    c.save()
+    written(OUT / "colours.pdf")
+
     # encrypted.pdf: the standard security handler, which is what nearly every
     # protected PDF in circulation uses and the only kind pdf.js can unlock.
     enc = StandardEncryption("gander", canPrint=1)

@@ -11,6 +11,12 @@ the reading surface itself. A page that shows a document *on* something -- a
 PDF page, a slide, a photo -- keeps a fixed dark ground in both schemes, so
 the white paper reads as the content and the surround recedes. Inverting that
 surround in light mode would put a white document on a white desk.
+
+Night mode, issue #19, is a third thing and is deliberately not in this file's
+two families. It turns a PDF page itself over, it is asked for rather than
+inherited from the system, and what it does is pinned in test_pdf_invert.py.
+The one assertion about it that belongs here is the boundary: dark mode on the
+phone must not turn a document over by itself.
 """
 
 import pytest
@@ -174,6 +180,25 @@ def test_a_document_ground_does_not_move_with_the_scheme(viewer, page, html, fix
 
     assert abs(light - ground(page)) < 0.02, \
         f"{html} ground shifted with the scheme; it is meant to be fixed"
+
+
+def test_the_system_scheme_does_not_turn_a_pdf_page_over(viewer, page):
+    """
+    The line between dark mode and night mode.
+
+    Dark mode is the phone's, and it darkens Gander's own chrome and the pages
+    that are reading surfaces. A document is paper and stays as it was printed
+    until somebody asks for otherwise, which is what the Night mode item in the
+    viewer's menu is for. Wiring one to the other would turn every diagram and
+    every letterhead over for people who only ever wanted a dark app.
+    """
+    from helpers import page_colours, wait_for_pdf
+    page.emulate_media(color_scheme="dark")
+    viewer("pdf.html", "colours.pdf")
+    wait_for_pdf(page)
+    page.wait_for_timeout(500)
+    assert "255,255,255" in page_colours(page), \
+        "the phone's dark mode turned a PDF page over on its own"
 
 
 def test_a_pdf_page_stands_out_against_its_surround(viewer, page):

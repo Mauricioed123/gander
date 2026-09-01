@@ -2,9 +2,17 @@
 
 ## Unreleased
 
+- Night mode for PDFs, from the viewer's menu. A page stayed white at midnight however the
+  phone was set, which is right for a Word page and wrong for reading a long PDF in bed.
+  Paper goes black and text goes white, and colours keep their hue rather than swapping to
+  the opposite one, so a blue heading comes back blue rather than orange. Photographs are
+  left as they were printed, unless the photograph is the whole page, which is what a scan
+  is. Nothing is written to the file, and the setting is remembered.
+  (thanks @MaxKash-06, who asked for this)
+
 - Gander has an automated test suite. There was none before this, and the way to check a
-  change was to build the app, sideload it and open files by hand. Three hundred and seventy
-  tests now run on every push: the Kotlin that decides which renderer a file gets and how
+  change was to build the app, sideload it and open files by hand. Four hundred tests now
+  run on every push: the Kotlin that decides which renderer a file gets and how
   it is served to that renderer, and the viewer pages themselves, driven in a real browser
   against the same fixture documents. The PDF viewer gets most of the attention, because it
   is the largest thing here and the one whose failures are quietest: a missing character
