@@ -38,7 +38,7 @@ HEADING_PLAIN_INVERT = "255,136,56"   # what a plain invert would give: orange
 VECTOR = "30,150,60"             # a drawn block, not an image, so it turns over
 VECTOR_OVER = "49,169,79"
 
-PHOTO = "200,30,30"              # an image on page 1, small enough to be an illustration
+PHOTO = "200,30,30"              # an image on page 1; no image is ever turned over
 CORNER_PHOTO = "255,0,255"       # a second one, up where the first zoom tile lands
 
 
@@ -116,20 +116,27 @@ def test_a_photograph_is_left_as_it_was_printed(viewer, page):
     assert CORNER_PHOTO in colours
 
 
-def test_a_scan_turns_over_even_though_it_is_an_image(viewer, page):
+def test_a_page_that_is_one_whole_image_is_left_alone(viewer, page):
     """
-    Page 2 of the fixture is one image covering the whole page, which is what a
-    scanned book is. Excluding it the way a photograph is excluded would make
-    night mode do nothing at all on the documents most people turn it on for, so
-    an image covering more than IMAGE_KEEP_MAX of a page counts as the page.
+    The rule is that no image is ever turned over, whatever size it is, and page 2
+    of the fixture is the case that rule was written for: one image covering the
+    entire page.
+
+    Sizing it was tried and withdrawn. An image covering most of a page was taken
+    to be the page and turned over, which is right for a scanned book and wrong
+    for a full-page photograph, and the rectangle says nothing about which one it
+    is looking at. The first real file that reached it was a photograph. The cost
+    of the simple rule is that night mode does nothing on a document of scans; the
+    cost of the clever one was damaging a picture, which is worse.
     """
     night(viewer, page)
     page.evaluate("() => document.querySelectorAll('#pages .pg')[1].scrollIntoView()")
     page.wait_for_timeout(1200)
     colours = page_colours(page, index=1)
-    assert PAPER_OVER in colours, f"the scan did not turn over; saw {list(colours)[:6]}"
-    assert INK_OVER in colours
-    assert PAPER not in colours
+    assert PAPER in colours, \
+        f"a full-page image was turned over; saw {list(colours)[:6]}"
+    assert INK in colours
+    assert PAPER_OVER not in colours
 
 
 # ---------------------------------------------------------------------------
