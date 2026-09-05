@@ -22,7 +22,7 @@ from helpers import (
     body_ground, page_colours, pan, paper_ground, region_colours,
     region_fingerprint, set_page_scale,
     text_layer_geometry, tile_colours, tiles, wait_for_pdf, wait_for_redraw,
-    wait_for_text_layer, wait_for_tile,
+    wait_for_text_layer, wait_for_tile, wait_for_tile_away_from_the_top,
 )
 
 # What colours.pdf is painted in, and what each one must become.
@@ -40,6 +40,7 @@ VECTOR = "30,150,60"             # a drawn block, not an image, so it turns over
 VECTOR_OVER = "49,169,79"
 
 PHOTO = "200,30,30"              # an image on page 1: a picture, and stays one
+PHOTO_OVER = "255,153,153"       # what it would become if the clip ever missed it
 CORNER_PHOTO = "255,0,255"       # a second one, up where the first zoom tile lands
 
 # Page 3 carries the three images that decide the rule. See make_fixtures.py.
@@ -367,16 +368,24 @@ def test_a_tile_away_from_the_page_corner_still_finds_the_photograph(viewer, pag
         set_page_scale(page, 4)
         wait_for_tile(page)
         pan(page, 0, 900)
-        page.wait_for_timeout(1200)
-        placed = [t for t in tiles(page) if t["px"]]
-        assert placed, "no tile after panning"
-        assert placed[0]["y"] > 1, f"the tile is still at the page origin: {placed[0]}"
-        return tile_colours(page).get(PHOTO, 0)
+        wait_for_tile_away_from_the_top(page)
+        placed = [t for t in tiles(page) if t["px"] and t["y"] > 1]
+        assert placed, "no tile away from the page top after panning"
+        seen = tile_colours(page)
+        return seen.get(PHOTO, 0), seen.get(PHOTO_OVER, 0)
 
-    daylight = red_in_tile(False)
+    daylight, _ = red_in_tile(False)
     assert daylight > 0, "the fixture's lower illustration is not in the panned tile"
-    assert red_in_tile(True) == daylight, \
-        "the clip landed in the wrong part of the page"
+    night_count, turned = red_in_tile(True)
+
+    # Not an equality. Panning is a synthesised fling and does not land on the same
+    # pixel twice, so the tile covers a slightly different rectangle each run and a
+    # few hundred pixels of the illustration fall in or out of it. What must not
+    # move is the colour: a clip landing anywhere but on the illustration would
+    # turn it over, and 200,30,30 would come back as 255,153,153.
+    assert turned == 0, "the illustration in the panned tile was turned over"
+    assert abs(night_count - daylight) < daylight * 0.05, \
+        f"the clip covered a different part of the page: {night_count} vs {daylight}"
 
 
 def test_a_zoom_tile_turns_a_figure_over_like_the_page_under_it(viewer, page):

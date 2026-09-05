@@ -305,3 +305,25 @@ def wait_for_tile(page, timeout=15000):
     """A tile is debounced by 150 ms and then has to render, so it is waited for."""
     page.wait_for_function(f"{TILES} >= 1", timeout=timeout)
     return page
+
+
+def wait_for_tile_away_from_the_top(page, timeout=15000):
+    """
+    Waits for a tile that does not begin at its page's top edge.
+
+    Panning asks for a new tile, and the old one stays on screen until the new one
+    has rendered, so "a tile exists" is true throughout and says nothing. Waiting on
+    the condition the test is about, rather than on a duration, is also what keeps
+    this from failing only when the machine is busy.
+    """
+    page.wait_for_function(
+        """() => [...document.querySelectorAll('#pages .pg')].some(pg => {
+             const b = pg.getBoundingClientRect();
+             return [...pg.querySelectorAll('canvas.tile')].some(t => {
+               const r = t.getBoundingClientRect();
+               return t.width > 0 && r.top - b.top > 1;
+             });
+           })""",
+        timeout=timeout,
+    )
+    return page
