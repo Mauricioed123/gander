@@ -291,6 +291,27 @@ def pdfs() -> None:
             colour.putpixel((x, y), (rng.randint(120, 255), rng.randint(20, 90),
                                      rng.randint(20, 90)))
     c.drawImage(ImageReader(colour), 220, H - 380, width=160, height=120)
+
+    # A product shot: a coloured object on a white background, which is what most
+    # photographs in a catalogue or a listing actually are. Mostly white, so the
+    # "is it mostly paper" half of the rule says document; strongly coloured, so the
+    # saturation half says picture. It is the case that stops that half being dropped.
+    product = Image.new("RGB", (150, 110), (252, 252, 252))
+    shot = ImageDraw.Draw(product)
+    shot.ellipse([30, 20, 120, 90], fill=(214, 68, 24))
+    shot.ellipse([52, 34, 78, 54], fill=(250, 186, 96))
+    c.drawImage(ImageReader(product), 30, H - 520, width=150, height=110)
+
+    # A second figure, over on the right. The one on the left cannot tell whether the
+    # page sample is being mapped back to the page at all, because a wrong mapping
+    # still lands somewhere near the top left and still reads as paper. This one is
+    # far enough across that a wrong mapping reads nothing and leaves it white.
+    right = Image.new("RGB", (200, 130), (255, 255, 255))
+    pen2 = ImageDraw.Draw(right)
+    pen2.rectangle([20, 20, 60, 110], fill=(20, 20, 20))
+    pen2.rectangle([80, 55, 120, 110], fill=(20, 20, 20))
+    pen2.rectangle([140, 35, 180, 110], fill=(20, 20, 20))
+    c.drawImage(ImageReader(right), 210, H - 520, width=170, height=110)
     c.showPage()
     c.save()
     written(OUT / "colours.pdf")

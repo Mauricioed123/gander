@@ -52,6 +52,9 @@ CHART_PAPER = "255,255,255"      # the chart's opaque white background, which mu
 CHART_AT = (0.10, 0.10, 0.70, 0.35)
 MONO_PHOTO_AT = (0.10, 0.45, 0.45, 0.62)
 COLOUR_PHOTO_AT = (0.58, 0.45, 0.93, 0.62)
+# (30, H-520) 150x110 and (210, H-520) 170x110 on a 400x600 page, inset a little.
+PRODUCT_AT = (0.10, 0.685, 0.43, 0.855)
+RIGHT_FIGURE_AT = (0.55, 0.685, 0.93, 0.855)
 
 
 def night(viewer, page, on=True, fixture="colours.pdf"):
@@ -202,6 +205,44 @@ def test_a_colour_photograph_is_left_alone_beside_a_figure_that_is_not(viewer, p
     photo_night, chart_night = look(True)
     assert photo_night == photo_day, "the colour photograph was turned over"
     assert chart_night != chart_day, "the figure beside it was left alone"
+
+
+def test_a_photograph_on_a_white_background_is_still_a_photograph(viewer, page):
+    """
+    Why the rule keeps its saturation half.
+
+    A product shot - an object photographed against white - is mostly paper by area,
+    so the "is it mostly white" half on its own calls it a document and turns it
+    inside out. Catalogues, listings and press packs are full of them. What saves
+    them is that they are strongly coloured where a document is not.
+    """
+    def shot(on):
+        night(viewer, page, on=on)
+        page.evaluate("() => document.querySelectorAll('#pages .pg')[2].scrollIntoView()")
+        page.wait_for_timeout(1400)
+        return region_fingerprint(page, 2, *PRODUCT_AT)
+
+    assert shot(True) == shot(False), \
+        "a photograph on a white background was turned over"
+
+
+def test_a_figure_far_from_the_page_corner_still_turns_over(viewer, page):
+    """
+    That the page sample is mapped back to the page, and not read at face value.
+
+    Every image is measured out of one small copy of the page, so each rectangle has
+    to be scaled into that copy's coordinates. Getting that wrong still works for
+    anything near the top left, which is where the first figure sits, because the
+    wrong region is also mostly paper. This one is far enough across that a wrong
+    mapping measures nothing at all and leaves it white.
+    """
+    night(viewer, page)
+    page.evaluate("() => document.querySelectorAll('#pages .pg')[2].scrollIntoView()")
+    page.wait_for_timeout(1400)
+    colours = region_colours(page, 2, *RIGHT_FIGURE_AT)
+    assert CHART_PAPER not in colours, \
+        f"the figure on the right stayed white; saw {list(colours)[:6]}"
+    assert PAPER_OVER in colours
 
 
 # ---------------------------------------------------------------------------
