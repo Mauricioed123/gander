@@ -217,6 +217,59 @@ def tile_colours(page, floor=20):
     return {k: n for k, n in (found or []) if n >= floor}
 
 
+def region_colours(page, index, fx0, fy0, fx1, fy1, floor=20):
+    """
+    The colours inside one rectangle of a page, given as fractions of it.
+
+    Needed wherever a page carries several things that share a colour: the ink in a
+    chart and the body text beside it are both near-black, so counting the whole
+    page cannot say which of them moved.
+    """
+    found = page.evaluate(
+        """([i, a, b, c, e]) => {
+            const cv = document.querySelectorAll('#pages .pg')[i].querySelector('canvas');
+            if (!cv || !cv.width) return null;
+            const x = Math.round(a * cv.width), y = Math.round(b * cv.height);
+            const w = Math.round((c - a) * cv.width), h = Math.round((e - b) * cv.height);
+            const d = cv.getContext('2d').getImageData(x, y, w, h).data;
+            const seen = new Map();
+            for (let i2 = 0; i2 < d.length; i2 += 4) {
+              const k = d[i2] + ',' + d[i2+1] + ',' + d[i2+2];
+              seen.set(k, (seen.get(k) || 0) + 1);
+            }
+            return [...seen.entries()].sort((p, q) => q[1] - p[1]);
+        }""",
+        [index, fx0, fy0, fx1, fy1],
+    )
+    return {k: n for k, n in (found or []) if n >= floor}
+
+
+def region_fingerprint(page, index, fx0, fy0, fx1, fy1):
+    """
+    A cheap checksum of one rectangle of a page, for asking "did this change at all".
+
+    Counting colours cannot answer that for a photograph: its pixels are all but
+    unique, so every count is one and any threshold hides the lot. Two fingerprints
+    that match mean the pixels match.
+    """
+    return page.evaluate(
+        """([i, a, b, c, e]) => {
+            const cv = document.querySelectorAll('#pages .pg')[i].querySelector('canvas');
+            if (!cv || !cv.width) return null;
+            const x = Math.round(a * cv.width), y = Math.round(b * cv.height);
+            const w = Math.round((c - a) * cv.width), h = Math.round((e - b) * cv.height);
+            const d = cv.getContext('2d').getImageData(x, y, w, h).data;
+            let s1 = 0, s2 = 0;
+            for (let k = 0; k < d.length; k += 4) {
+              s1 = (s1 + d[k] + 2 * d[k+1] + 3 * d[k+2]) % 4294967291;
+              s2 = (s2 + s1) % 4294967291;
+            }
+            return w + 'x' + h + ':' + s1 + ':' + s2;
+        }""",
+        [index, fx0, fy0, fx1, fy1],
+    )
+
+
 def body_ground(page):
     return page.evaluate("() => getComputedStyle(document.body).backgroundColor")
 

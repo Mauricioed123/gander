@@ -21,6 +21,7 @@ Needs:  reportlab python-docx openpyxl python-pptx pillow
 
 import io
 import os
+import random
 import re
 import shutil
 import struct
@@ -224,7 +225,7 @@ def pdfs() -> None:
     #
     # Flat colours on purpose. A photograph would make the assertions sample
     # noise, and what is being pinned here is which pixels the filter reached.
-    from PIL import Image
+    from PIL import Image, ImageDraw
     from reportlab.lib.utils import ImageReader
 
     def block(rgb, size=(64, 64)):
@@ -253,6 +254,43 @@ def pdfs() -> None:
         for y in range(40, 60):
             scan.putpixel((x, y), (20, 20, 20))
     c.drawImage(ImageReader(scan), 0, 0, width=W, height=H)
+    c.showPage()
+
+    # Page 3 is the case that decides night mode's image rule, and the one two
+    # simpler rules got wrong. All three of these are images as far as the PDF is
+    # concerned, and they want three different things:
+    #
+    #   the chart   an opaque white background: leaving it alone puts a white
+    #               rectangle on a dark page, which is what KOReader shipped and
+    #               had reported back as their issue #4986
+    #   the mono    a grey photograph, so no saturation to give it away; only the
+    #     photo     absence of white paper separates it from a document
+    #   the colour  the easy case, and the one a size rule got wrong by treating a
+    #     photo     full-page photograph as a page
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(0, 0, W, H, stroke=0, fill=1)
+
+    chart = Image.new("RGB", (260, 170), (255, 255, 255))
+    pen = ImageDraw.Draw(chart)
+    pen.line([(30, 140), (250, 140)], fill=(20, 20, 20), width=2)
+    pen.line([(30, 10), (30, 140)], fill=(20, 20, 20), width=2)
+    pen.line([(30, 120), (90, 60), (150, 95), (210, 30)], fill=(0, 119, 199), width=3)
+    c.drawImage(ImageReader(chart), 30, H - 220, width=260, height=170)
+
+    mono = Image.new("RGB", (160, 120))
+    rng = random.Random(11)
+    for x in range(160):
+        for y in range(120):
+            v = rng.randint(20, 150)
+            mono.putpixel((x, y), (v, v, v))
+    c.drawImage(ImageReader(mono), 30, H - 380, width=160, height=120)
+
+    colour = Image.new("RGB", (160, 120))
+    for x in range(160):
+        for y in range(120):
+            colour.putpixel((x, y), (rng.randint(120, 255), rng.randint(20, 90),
+                                     rng.randint(20, 90)))
+    c.drawImage(ImageReader(colour), 220, H - 380, width=160, height=120)
     c.showPage()
     c.save()
     written(OUT / "colours.pdf")

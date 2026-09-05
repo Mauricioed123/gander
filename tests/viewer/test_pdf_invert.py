@@ -19,7 +19,8 @@ below back orange.
 import pytest
 
 from helpers import (
-    body_ground, page_colours, pan, paper_ground, set_page_scale,
+    body_ground, page_colours, pan, paper_ground, region_colours,
+    region_fingerprint, set_page_scale,
     text_layer_geometry, tile_colours, tiles, wait_for_pdf, wait_for_redraw,
     wait_for_text_layer, wait_for_tile,
 )
@@ -38,8 +39,18 @@ HEADING_PLAIN_INVERT = "255,136,56"   # what a plain invert would give: orange
 VECTOR = "30,150,60"             # a drawn block, not an image, so it turns over
 VECTOR_OVER = "49,169,79"
 
-PHOTO = "200,30,30"              # an image on page 1; no image is ever turned over
+PHOTO = "200,30,30"              # an image on page 1: a picture, and stays one
 CORNER_PHOTO = "255,0,255"       # a second one, up where the first zoom tile lands
+
+# Page 3 carries the three images that decide the rule. See make_fixtures.py.
+CHART_PAPER = "255,255,255"      # the chart's opaque white background, which must go
+
+# Where the three images on page 3 sit, as fractions of the page. The page is 400x600
+# and the generator places them at (30, H-220) 260x170, (30, H-380) 160x120 and
+# (220, H-380) 160x120; these are those rectangles, inset a little.
+CHART_AT = (0.10, 0.10, 0.70, 0.35)
+MONO_PHOTO_AT = (0.10, 0.45, 0.45, 0.62)
+COLOUR_PHOTO_AT = (0.58, 0.45, 0.93, 0.62)
 
 
 def night(viewer, page, on=True, fixture="colours.pdf"):
@@ -116,27 +127,80 @@ def test_a_photograph_is_left_as_it_was_printed(viewer, page):
     assert CORNER_PHOTO in colours
 
 
-def test_a_page_that_is_one_whole_image_is_left_alone(viewer, page):
+def test_a_scanned_page_turns_over_even_though_it_is_an_image(viewer, page):
     """
-    The rule is that no image is ever turned over, whatever size it is, and page 2
-    of the fixture is the case that rule was written for: one image covering the
-    entire page.
+    Page 2 of the fixture is one image covering the whole page, which is what a
+    scanned book is, and it has to turn over like the page it is a picture of.
 
-    Sizing it was tried and withdrawn. An image covering most of a page was taken
-    to be the page and turned over, which is right for a scanned book and wrong
-    for a full-page photograph, and the rectangle says nothing about which one it
-    is looking at. The first real file that reached it was a photograph. The cost
-    of the simple rule is that night mode does nothing on a document of scans; the
-    cost of the clever one was damaging a picture, which is worse.
+    Two simpler rules got this wrong in opposite directions and both shipped
+    briefly. Sizing it - an image covering most of a page is the page - turned a
+    full-page photograph inside out. Excluding every image left this white.
     """
     night(viewer, page)
     page.evaluate("() => document.querySelectorAll('#pages .pg')[1].scrollIntoView()")
-    page.wait_for_timeout(1200)
+    page.wait_for_timeout(1400)
     colours = page_colours(page, index=1)
-    assert PAPER in colours, \
-        f"a full-page image was turned over; saw {list(colours)[:6]}"
-    assert INK in colours
-    assert PAPER_OVER not in colours
+    assert PAPER_OVER in colours, f"the scan did not turn over; saw {list(colours)[:6]}"
+    assert INK_OVER in colours
+    assert PAPER not in colours
+
+
+def test_a_figure_with_a_white_background_does_not_stay_white(viewer, page):
+    """
+    The loudest way to get this wrong, and the one that is easiest to ship.
+
+    A chart exported as a PNG, a logo on a letterhead and a chapter ornament are
+    all images carrying an opaque white background. Leaving them alone because
+    they are images puts a glaring white rectangle in the middle of a dark page,
+    on the commonest documents there are - worse than night mode doing nothing.
+    KOReader shipped exactly that and had it reported as their issue #4986.
+    """
+    night(viewer, page)
+    page.evaluate("() => document.querySelectorAll('#pages .pg')[2].scrollIntoView()")
+    page.wait_for_timeout(1400)
+    colours = region_colours(page, 2, *CHART_AT)
+    assert CHART_PAPER not in colours, \
+        f"the figure was left as a white rectangle; saw {list(colours)[:6]}"
+    assert PAPER_OVER in colours
+
+
+def test_a_photograph_with_no_colour_in_it_is_still_a_photograph(viewer, page):
+    """
+    Why the rule takes two measurements rather than one.
+
+    Saturation alone separates a colour photograph from a document, and would be
+    the obvious single test. A black and white photograph has no saturation
+    either, so on its own that rule turns every one of them inside out. What
+    saves it is that a document is mostly blank paper and a photograph is not.
+    """
+    def photo(on):
+        night(viewer, page, on=on)
+        page.evaluate("() => document.querySelectorAll('#pages .pg')[2].scrollIntoView()")
+        page.wait_for_timeout(1400)
+        return region_colours(page, 2, *MONO_PHOTO_AT)
+
+    daylight = photo(False)
+    assert daylight, "the monochrome photograph is not in the fixture"
+    assert photo(True) == daylight, \
+        "a photograph with no colour in it was turned over"
+
+
+def test_a_colour_photograph_is_left_alone_beside_a_figure_that_is_not(viewer, page):
+    """
+    Both halves of the rule on one page, so neither can be satisfied by a change
+    that gives up and treats every image the same way.
+    """
+    def look(on):
+        night(viewer, page, on=on)
+        page.evaluate("() => document.querySelectorAll('#pages .pg')[2].scrollIntoView()")
+        page.wait_for_timeout(1400)
+        return (region_fingerprint(page, 2, *COLOUR_PHOTO_AT),
+                region_fingerprint(page, 2, *CHART_AT))
+
+    photo_day, chart_day = look(False)
+    photo_night, chart_night = look(True)
+    assert photo_night == photo_day, "the colour photograph was turned over"
+    assert chart_night != chart_day, "the figure beside it was left alone"
 
 
 # ---------------------------------------------------------------------------
@@ -313,6 +377,29 @@ def test_a_tile_away_from_the_page_corner_still_finds_the_photograph(viewer, pag
     assert daylight > 0, "the fixture's lower illustration is not in the panned tile"
     assert red_in_tile(True) == daylight, \
         "the clip landed in the wrong part of the page"
+
+
+def test_a_zoom_tile_turns_a_figure_over_like_the_page_under_it(viewer, page):
+    """
+    A tile has to reach the same verdict as the page beneath it.
+
+    It cannot reach it by measuring, because a tile holds only the part of an image
+    inside it: a corner of a photograph can be pale and flat and read as paper. So
+    the page decides once, where the whole image is visible, and the tile reuses
+    that. Get it wrong and a figure is dark at one zoom and white at another, on the
+    same screen, which is the kind of thing that looks like a rendering fault.
+    """
+    night(viewer, page)
+    page.evaluate(
+        "() => document.querySelectorAll('#pages .pg')[2].scrollIntoView({block:'start'})")
+    page.wait_for_timeout(1200)
+    set_page_scale(page, 4)
+    wait_for_tile(page)
+    page.wait_for_timeout(900)
+    colours = tile_colours(page)
+    assert colours, "no tile to read"
+    assert CHART_PAPER not in colours, \
+        f"the figure stayed white in the sharp patch; saw {list(colours)[:6]}"
 
 
 def test_a_zoom_tile_is_not_turned_over_in_daylight(viewer, page):
