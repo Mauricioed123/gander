@@ -4,11 +4,22 @@
     <issue
         id="RequiresFeature"
         message="`postMessage` should only be called if the feature `WEB_MESSAGE_PORT_POST_MESSAGE` is present; to check call `androidx.webkit.WebViewFeature#isFeatureSupported`"
+        errorLine1="            searchPort?.postMessage(WebMessageCompat(PortCommand.nightMode(on)))"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/arjun/gander/ViewerActivity.kt"
+            line="322"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="RequiresFeature"
+        message="`postMessage` should only be called if the feature `WEB_MESSAGE_PORT_POST_MESSAGE` is present; to check call `androidx.webkit.WebViewFeature#isFeatureSupported`"
         errorLine1="                searchPort?.postMessage(WebMessageCompat(PortCommand.goToPage(n)))"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="595"
+            line="625"
             column="17"/>
     </issue>
 
@@ -19,7 +30,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="982"
+            line="1012"
             column="13"/>
     </issue>
 
@@ -30,7 +41,7 @@
         errorLine2="        ^">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1041"
+            line="1071"
             column="9"/>
     </issue>
 
@@ -41,7 +52,7 @@
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1044"
+            line="1074"
             column="40"/>
     </issue>
 
@@ -52,7 +63,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1048"
+            line="1078"
             column="23"/>
     </issue>
 
@@ -85,7 +96,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="184"
+            line="188"
             column="20"/>
     </issue>
 
@@ -96,7 +107,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="185"
+            line="189"
             column="20"/>
     </issue>
 
@@ -107,7 +118,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="186"
+            line="190"
             column="20"/>
     </issue>
 
@@ -118,7 +129,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="187"
+            line="191"
             column="20"/>
     </issue>
 
@@ -129,7 +140,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="188"
+            line="192"
             column="20"/>
     </issue>
 
@@ -140,7 +151,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="192"
+            line="196"
             column="20"/>
     </issue>
 
@@ -151,7 +162,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="194"
+            line="198"
             column="20"/>
     </issue>
 
@@ -162,7 +173,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="195"
+            line="199"
             column="20"/>
     </issue>
 
@@ -195,7 +206,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="49"
+            line="54"
             column="5"/>
     </issue>
 
@@ -385,7 +396,7 @@
         errorLine2="                                                                       ~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1042"
+            line="1072"
             column="72"/>
     </issue>
 
@@ -418,7 +429,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="555"
+            line="585"
             column="21"/>
     </issue>
 
