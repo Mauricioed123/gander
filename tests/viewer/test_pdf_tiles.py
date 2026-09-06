@@ -187,7 +187,19 @@ def test_the_patch_lands_exactly_on_the_page_beneath_it(viewer, page):
     # Off the page's own corner, in both directions. A tile drawn from the
     # wrong place would otherwise be drawn from the right one by accident:
     # at the top of the document the visible region *is* the page's corner.
-    pan(page, 150, 180)
+    #
+    # Measured down from where the page is rather than from the top of the
+    # document, because #pages centres a document that fits on the screen and
+    # this one does: 693 px of page in 1600 px of viewport, which leaves it
+    # starting 449 px down. A fixed distance lands in the surround above the
+    # page, and the view never reaches the page at all.
+    #
+    # Two drags rather than one diagonal, because that vertical travel is now
+    # long enough to dominate and take the sideways half with it. See pan().
+    top = page.evaluate(
+        "() => document.querySelector('#pages .pg').getBoundingClientRect().top")
+    pan(page, 150, 0)
+    pan(page, 0, top + 180)
     wait_for_tile(page)
     page.wait_for_timeout(600)
     seen = visible_rect(page)

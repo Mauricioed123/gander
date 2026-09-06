@@ -113,6 +113,12 @@ def pan(page, dx, dy):
 
     window.scrollTo moves the layout viewport and cannot go sideways here,
     because the document is exactly as wide as that viewport.
+
+    One axis at a time when the distance matters. This is a real touch gesture,
+    so Chromium's scroll recogniser locks it to whichever of the two distances
+    dominates and throws the other away: pan(150, 250) moves only downwards and
+    pan(400, 150) only sideways, while pan(300, 300) moves both. A caller that
+    wants to travel a long way diagonally has to ask for it as two drags.
     """
     page.context.new_cdp_session(page).send("Input.synthesizeScrollGesture", {
         "x": 120, "y": 200, "xDistance": -dx, "yDistance": -dy,
