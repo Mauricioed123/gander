@@ -5,7 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
@@ -21,6 +23,7 @@ import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowDialog
 
 /**
  * The home screen: recents, granted folders, and the first-run explainer.
@@ -370,6 +373,106 @@ class MainActivityTest {
         }
         val controller = home(damaged)
         assertThat(controller.welcome().visibility).isEqualTo(View.VISIBLE)
+    }
+
+    // ---------------------------------------------------------------
+    // Removal
+    // ---------------------------------------------------------------
+
+    /** Binds the first row whose title is [title] and answers its view. */
+    private fun ActivityController<MainActivity>.rowView(title: String): View {
+        val rv = list()
+        val adapter = rv.adapter!!
+        val position = (0 until adapter.itemCount).first { position ->
+            val holder = adapter.createViewHolder(rv, adapter.getItemViewType(position))
+            adapter.bindViewHolder(holder, position)
+            holder.itemView.findViewById<TextView>(R.id.title)?.text?.toString() == title
+        }
+        val holder = adapter.createViewHolder(rv, adapter.getItemViewType(position))
+        adapter.bindViewHolder(holder, position)
+        return holder.itemView
+    }
+
+    private fun ActivityController<MainActivity>.longPressRow(title: String) {
+        rowView(title).performLongClick()
+        shadowOf(context.mainLooper).idle()
+    }
+
+    private fun latestDialog(): AlertDialog? =
+        ShadowDialog.getLatestDialog() as? AlertDialog
+
+    private fun persistedUris(): List<String> =
+        context.contentResolver.persistedUriPermissions.map { it.uri.toString() }
+
+    /**
+     * Releasing a folder grant is the one thing on this screen Android cannot undo,
+     * so it is the one thing that asks first. The grant itself is what the assertion
+     * is about: leaving the row drawn would prove nothing if the permission had gone.
+     */
+    @Test
+    fun cancellingTheRemoveDialogKeepsTheFolderGrant() {
+        val tree = grantedFolder()
+        val controller = home()
+        controller.longPressRow("Documents")
+
+        val dialog = latestDialog()
+        assertThat(dialog).isNotNull()
+        assertThat(dialog!!.isShowing).isTrue()
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+        shadowOf(context.mainLooper).idle()
+
+        assertThat(persistedUris()).contains(tree.toString())
+        assertThat(controller.rowTitles()).contains("Documents")
+    }
+
+    @Test
+    fun confirmingTheRemoveDialogReleasesTheFolderGrant() {
+        val tree = grantedFolder()
+        val controller = home()
+        controller.longPressRow("Documents")
+
+        latestDialog()!!.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        shadowOf(context.mainLooper).idle()
+
+        assertThat(persistedUris()).doesNotContain(tree.toString())
+        assertThat(controller.rowTitles()).doesNotContain("Documents")
+    }
+
+    /**
+     * A recent costs one tap to open again and the list prunes itself at 25, so it
+     * goes on the press alone. The asymmetry with a folder is deliberate, and this
+     * pins it so nobody later tidies the two into agreeing.
+     */
+    @Test
+    fun removingARecentAsksNothing() {
+        granted("six-pages.pdf", "Alder Court.pdf")
+        val controller = home()
+        controller.longPressRow("Alder Court.pdf")
+
+        assertThat(ShadowDialog.getLatestDialog()).isNull()
+        assertThat(controller.rowTitles()).doesNotContain("Alder Court.pdf")
+    }
+
+    /**
+     * Long-press is the only way to remove a row and nothing on screen says so, which
+     * makes the TalkBack label the one place it is announced. A row that cannot be
+     * removed must not claim the gesture: binding a listener at all sets
+     * isLongClickable, which used to leave "Add a folder" offering a press that did
+     * nothing.
+     */
+    @Test
+    fun onlyRowsThatCanBeRemovedAnnounceTheGesture() {
+        grantedFolder()
+        val controller = home()
+
+        val folder = controller.rowView("Documents")
+        assertThat(folder.isLongClickable).isTrue()
+        val longClick = folder.createAccessibilityNodeInfo()!!.actionList
+            .first { it.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK.id }
+        assertThat(longClick.label.toString()).isEqualTo(context.getString(R.string.remove))
+
+        val add = controller.rowView(context.getString(R.string.add_folder))
+        assertThat(add.isLongClickable).isFalse()
     }
 
     // ---------------------------------------------------------------
