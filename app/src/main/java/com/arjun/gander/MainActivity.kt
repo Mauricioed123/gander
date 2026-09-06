@@ -19,9 +19,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
@@ -69,6 +71,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var list: RecyclerView
     private lateinit var welcome: View
     private lateinit var fab: ExtendedFloatingActionButton
+
+    /**
+     * The last "Removed" toast, kept only so the next one can cancel it.
+     *
+     * The framework queues toasts rather than replacing them, and each one is shown for
+     * its full duration. Clearing a dozen recents in a couple of seconds therefore left
+     * a dozen badges to play out one after another, still appearing half a minute after
+     * the last thing was removed. Cancelling the one in flight collapses a burst to a
+     * single badge that goes away shortly after the reader stops.
+     */
+    private var removedToast: Toast? = null
 
     /**
      * Where the rows are built.
@@ -394,6 +407,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Shows the removal badge, replacing any still on screen rather than queueing behind it. */
+    private fun toastRemoved() {
+        removedToast?.cancel()
+        removedToast = Toast.makeText(this, R.string.removed, Toast.LENGTH_SHORT)
+            .also { it.show() }
+    }
+
     private fun homeRows(): Screen {
         val recents = Recents.all(this)
         // Labelled first, then sorted. sortedBy runs its selector on every comparison,
@@ -426,7 +446,7 @@ class MainActivity : AppCompatActivity() {
                     onLongClick = {
                         Recents.remove(this, r.uri)
                         Thumbs.evict(this, r.uri)
-                        Toast.makeText(this, R.string.removed, Toast.LENGTH_SHORT).show()
+                        toastRemoved()
                         render()
                     },
                     thumbUri = uri.takeIf { Thumbs.supported(FileKind.detect(ext, null), ext) },
@@ -445,14 +465,34 @@ class MainActivity : AppCompatActivity() {
                     )
                     render()
                 },
+                // The only confirmation in the app, because this is the only thing on the
+                // screen that cannot be undone. Android has no inverse for a released
+                // permission: takePersistableUriPermission needs a live grant from an intent
+                // result, so once this has run the way back is the system picker.
                 onLongClick = {
-                    runCatching {
-                        contentResolver.releasePersistableUriPermission(
-                            perm.uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    val dialog = MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.remove_folder_title)
+                        .setMessage(getString(R.string.remove_folder_message, label))
+                        .setPositiveButton(R.string.remove) { _, _ ->
+                            runCatching {
+                                contentResolver.releasePersistableUriPermission(
+                                    perm.uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                            }
+                            toastRemoved()
+                            render()
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .create()
+                    dialog.show()
+                    // Tinted after show(): getButton returns null until the dialog is laid out
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).also { button ->
+                        button.setTextColor(
+                            MaterialColors.getColor(
+                                button, com.google.android.material.R.attr.colorError
+                            )
                         )
                     }
-                    Toast.makeText(this, R.string.removed, Toast.LENGTH_SHORT).show()
-                    render()
                 }
             )
         }
@@ -645,9 +685,28 @@ class MainActivity : AppCompatActivity() {
                     holder.itemView.contentDescription =
                         listOfNotNull(row.title, row.badge, row.subtitle).joinToString(", ")
                     holder.itemView.setOnClickListener { row.onClick() }
-                    holder.itemView.setOnLongClickListener {
-                        row.onLongClick?.invoke()
-                        row.onLongClick != null
+                    // Long-press is how a row is removed, and nothing on screen says so.
+                    // Naming it for TalkBack is the one place that gesture is announced, so
+                    // the rows that do not have it must not claim it either: binding a
+                    // listener at all sets isLongClickable, which used to leave headings and
+                    // "Add a folder" advertising a press that did nothing.
+                    val remover = row.onLongClick
+                    if (remover == null) {
+                        holder.itemView.setOnLongClickListener(null)
+                        // Clearing the listener does not clear the flag it set
+                        holder.itemView.isLongClickable = false
+                        ViewCompat.replaceAccessibilityAction(
+                            holder.itemView, AccessibilityActionCompat.ACTION_LONG_CLICK,
+                            null, null
+                        )
+                    } else {
+                        holder.itemView.setOnLongClickListener { remover(); true }
+                        // Relabels the gesture and nothing else: a null command keeps the
+                        // default behaviour, so this reads "double tap and hold to Remove"
+                        ViewCompat.replaceAccessibilityAction(
+                            holder.itemView, AccessibilityActionCompat.ACTION_LONG_CLICK,
+                            holder.itemView.context.getString(R.string.remove), null
+                        )
                     }
                 }
             }

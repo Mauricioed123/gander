@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+- Removing several recents or folders quickly shows one "Removed" badge rather than one per
+  removal. The framework queues badges and plays each for its full couple of seconds, so a
+  dozen removals in a burst kept a badge on screen for another half a minute after the last
+  one. A removal now replaces the badge in front of the reader instead of joining a queue
+  behind it.
+
+- Removing a granted folder asks first. It is the only thing on the home screen that cannot
+  be undone, since Android has no way to hand a released permission back, and the route to
+  one removed by accident was a fresh trip through the system picker. A recent file still
+  goes on the long-press alone: it costs a tap to open again, and the list prunes itself at
+  twenty-five.
+
+- Screen readers name the gesture. A row that can be removed now reads as "double tap and
+  hold to Remove" rather than an unnamed long-press, and the headings and Add a folder have
+  stopped offering a press that did nothing.
+
+- The line shown while a document is being built sits in the middle of the screen. It was a
+  card in the flow at the top, which on an otherwise empty screen read less as the state of
+  the screen than as a notice about something else. Errors and the PDF password prompt sit
+  there too, which also means an error raised after a long document is already open is now
+  in front of the reader rather than at a top they have scrolled past.
+
+- That card is legible in Word, slide, spreadsheet and image documents. Those pages are laid
+  out at 980 pixels and zoomed down to fit the screen, which had been shrinking the card and
+  its text to about 40% of the size they were written at. The PDF viewer already corrected
+  for this; the rest now do the same.
+
+## 1.15 (2026-09-06)
+
+- A document that fits on the screen sits in the middle of it. A PDF or Word page is about
+  two thirds of a phone screen tall and a slide is under a third, so a one-page document or
+  a short deck stood at the top with a band of empty ground below it rather than in the
+  middle, where the eye rests and where a photograph in Gander has always gone. Anything
+  longer than the screen is exactly where it was.
+
+- A Word page fills the width of the screen. It was drawn at its real paper width, 816
+  pixels for US Letter against the 980 the viewer lays out at, so a page sat at 83% of the
+  screen with a strip of ground down each side, and the text inside it, once Word's own
+  margins were taken off, was under sixty per cent. It is now scaled to fit, the way a PDF
+  page and a slide always have. No line break moves: it is the same page, about a fifth
+  larger.
+
 - Night mode for PDFs, from the viewer's menu. A page stayed white at midnight however the
   phone was set, which is right for a Word page and wrong for reading a long PDF in bed.
   Paper goes black and text goes white, and colours keep their hue rather than swapping to
