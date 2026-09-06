@@ -313,6 +313,24 @@ def pdfs() -> None:
     pen2.rectangle([140, 35, 180, 110], fill=(20, 20, 20))
     c.drawImage(ImageReader(right), 210, H - 520, width=170, height=110)
     c.showPage()
+
+    # Page 4: two photographs that overlap, which is how a collage, a watermarked
+    # photo or a figure with an inset is put together. Both are pictures and all of
+    # both must survive, the overlap included. Clipping every picture out of one
+    # even-odd path gets this wrong - canvas plus two holes is three crossings, which
+    # even-odd reads as inside - so the overlap comes back turned over while the two
+    # pictures around it do not.
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(0, 0, W, H, stroke=0, fill=1)
+    c.setFillColorRGB(20 / 255, 20 / 255, 20 / 255)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(30, H - 50, "Two photographs, overlapping")
+
+    under = Image.new("RGB", (180, 130), (206, 44, 30))
+    over = Image.new("RGB", (180, 130), (28, 82, 196))
+    c.drawImage(ImageReader(under), 30, H - 260, width=180, height=130)
+    c.drawImage(ImageReader(over), 130, H - 320, width=180, height=130)
+    c.showPage()
     c.save()
     written(OUT / "colours.pdf")
 

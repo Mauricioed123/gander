@@ -309,7 +309,12 @@ class ViewerActivity : AppCompatActivity() {
      */
     private fun setUpNightMode(toolbar: MaterialToolbar, kind: FileKind) {
         val item = toolbar.menu.findItem(R.id.action_night_mode)
-        if (kind != FileKind.PDF || !canPortSearch()) {
+        // The last test is the card pdf.html shows instead of a document when the
+        // WebView is too old for the renderer: pdfjsFloorParams is non-empty exactly
+        // then, and turning a card that says "update your WebView" dark is not a
+        // feature. Same standard as the two above, and as action_search.
+        val blocked = pdfjsFloorParamsFor(kind, webView?.settings?.userAgentString).isNotEmpty()
+        if (kind != FileKind.PDF || !canPortSearch() || blocked) {
             item.isVisible = false
             return
         }
@@ -319,6 +324,7 @@ class ViewerActivity : AppCompatActivity() {
             val on = !it.isChecked
             it.isChecked = on
             Settings.setNight(this, on)
+            if (searchPort != null) loadedNight = on
             searchPort?.postMessage(WebMessageCompat(PortCommand.nightMode(on)))
             true
         }
@@ -401,6 +407,15 @@ class ViewerActivity : AppCompatActivity() {
 
     /** The page end of the PDF search channel, held so it can be closed. */
     private var searchPort: WebMessagePortCompat? = null
+
+    /**
+     * The night mode the page was loaded with, so a tap made before the channel exists
+     * is not lost. setUpNightMode runs in onCreate and the port only arrives on page
+     * finished; in between the item is tappable and there is nowhere to send it. The
+     * preference is the truth, so the port corrects the page on the way up, the same
+     * way openSearchChannel replays a query typed too early.
+     */
+    private var loadedNight = false
 
     /** Set once the counter exists, called with (position, total, indexFinished). */
     private var onSearchCount: ((Int, Int, Boolean) -> Unit)? = null
@@ -1072,6 +1087,12 @@ class ViewerActivity : AppCompatActivity() {
             web, WebMessageCompat("vw-search-port", arrayOf(ends[1])), Uri.parse("*"))
         // Anything typed while there was nowhere to send it.
         if (pendingQuery.isNotEmpty()) mine.postMessage(WebMessageCompat(PortCommand.query(pendingQuery)))
+        // And any night mode tapped in the same window. Compared against what the URL
+        // carried rather than tracked as a flag, so any number of taps comes out right.
+        if (Settings.night(this) != loadedNight) {
+            loadedNight = Settings.night(this)
+            mine.postMessage(WebMessageCompat(PortCommand.nightMode(loadedNight)))
+        }
     }
 
     private fun closeSearchChannel() {
@@ -1350,6 +1371,7 @@ class ViewerActivity : AppCompatActivity() {
         // survives process death and the recreate() in showRendererGone, neither of which
         // leaves a port to send anything down.
         val night = if (kind == FileKind.PDF && Settings.night(this)) 1 else 0
+        loadedNight = night == 1
         web.loadUrl(
             "https://$ASSET_HOST/assets/viewer/${kind.page}" +
                 "?name=${Uri.encode(name)}&ext=${Uri.encode(ext)}&ranged=$ranged" +
@@ -1376,8 +1398,13 @@ class ViewerActivity : AppCompatActivity() {
         pageFader.hideNow()
         fastScrollEnabled = false
         hideFastScrollNow()
-        findViewById<MaterialToolbar>(R.id.toolbar).menu
-            .findItem(R.id.action_search)?.isVisible = false
+        // Night mode goes with the search item: the channel both of them speak over is
+        // closed two lines down, so leaving either on screen offers a control that does
+        // nothing, and night mode would go on rewriting the stored preference at a port
+        // nothing is listening to.
+        val goneMenu = findViewById<MaterialToolbar>(R.id.toolbar).menu
+        goneMenu.findItem(R.id.action_search)?.isVisible = false
+        goneMenu.findItem(R.id.action_night_mode)?.isVisible = false
         closeSearchChannel()
 
         container.removeAllViews()

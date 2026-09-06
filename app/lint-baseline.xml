@@ -8,7 +8,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="322"
+            line="328"
             column="13"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="625"
+            line="640"
             column="17"/>
     </issue>
 
@@ -30,7 +30,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1012"
+            line="1027"
             column="13"/>
     </issue>
 
@@ -41,7 +41,7 @@
         errorLine2="        ^">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1071"
+            line="1086"
             column="9"/>
     </issue>
 
@@ -52,8 +52,19 @@
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1074"
+            line="1089"
             column="40"/>
+    </issue>
+
+    <issue
+        id="RequiresFeature"
+        message="`postMessage` should only be called if the feature `WEB_MESSAGE_PORT_POST_MESSAGE` is present; to check call `androidx.webkit.WebViewFeature#isFeatureSupported`"
+        errorLine1="            mine.postMessage(WebMessageCompat(PortCommand.nightMode(loadedNight)))"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/arjun/gander/ViewerActivity.kt"
+            line="1094"
+            column="13"/>
     </issue>
 
     <issue
@@ -63,7 +74,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1078"
+            line="1099"
             column="23"/>
     </issue>
 
@@ -396,7 +407,7 @@
         errorLine2="                                                                       ~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="1072"
+            line="1087"
             column="72"/>
     </issue>
 
@@ -429,7 +440,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/arjun/gander/ViewerActivity.kt"
-            line="585"
+            line="600"
             column="21"/>
     </issue>
 

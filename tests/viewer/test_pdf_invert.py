@@ -56,6 +56,18 @@ COLOUR_PHOTO_AT = (0.58, 0.45, 0.93, 0.62)
 PRODUCT_AT = (0.10, 0.685, 0.43, 0.855)
 RIGHT_FIGURE_AT = (0.55, 0.685, 0.93, 0.855)
 
+# Page 4: two photographs at (30, H-260) and (130, H-320), each 180x130 on a 400x600
+# page. In canvas fractions that puts the lower one at x 0.075..0.525, y 0.217..0.433
+# and the upper at x 0.325..0.775, y 0.317..0.533, so they cross at x 0.325..0.525,
+# y 0.317..0.433. These three boxes are inset inside those, and the middle one has to
+# be the crossing itself: a box that only looks near it passes whatever the code does,
+# which is how the first version of this test passed against the bug it exists for.
+UNDER_ONLY_AT = (0.10, 0.24, 0.30, 0.40)
+OVER_ONLY_AT = (0.58, 0.36, 0.75, 0.51)
+OVERLAP_AT = (0.361, 0.338, 0.489, 0.412)
+UNDER_COLOUR = "206,44,30"
+OVER_COLOUR = "28,82,196"
+
 
 def night(viewer, page, on=True, fixture="colours.pdf"):
     """Opens colours.pdf the way ViewerActivity would, with the mode already set."""
@@ -243,6 +255,36 @@ def test_a_figure_far_from_the_page_corner_still_turns_over(viewer, page):
     assert CHART_PAPER not in colours, \
         f"the figure on the right stayed white; saw {list(colours)[:6]}"
     assert PAPER_OVER in colours
+
+
+def test_two_photographs_that_overlap_are_both_kept_whole(viewer, page):
+    """
+    The overlap is a picture too, and it is the piece an even-odd hole loses.
+
+    Clipping every picture out of a single even-odd path is the natural way to write
+    "everything but these", and it is wrong exactly here: even-odd counts crossings,
+    so the canvas plus two holes comes to three, which is odd, which is inside. The
+    overlap is turned over while both photographs around it are left alone, and two
+    copies of one image at the same place invert the whole picture. Clipping one hole
+    at a time intersects instead, and an intersection of complements is the complement
+    of the union however they lie. Nonzero winding is not the fix either; the overlap
+    counts -1 there, which is also inside.
+
+    A collage, a photograph under a colour wash and a figure with an inset are all
+    this shape.
+    """
+    night(viewer, page)
+    page.evaluate("() => document.querySelectorAll('#pages .pg')[3].scrollIntoView()")
+    page.wait_for_timeout(1400)
+
+    under = region_colours(page, 3, *UNDER_ONLY_AT)
+    over = region_colours(page, 3, *OVER_ONLY_AT)
+    overlap = region_colours(page, 3, *OVERLAP_AT)
+
+    assert UNDER_COLOUR in under, f"the lower photograph was turned over; {list(under)[:4]}"
+    assert OVER_COLOUR in over, f"the upper photograph was turned over; {list(over)[:4]}"
+    assert OVER_COLOUR in overlap, \
+        f"the overlap was turned over while both photographs were kept; {list(overlap)[:4]}"
 
 
 # ---------------------------------------------------------------------------
