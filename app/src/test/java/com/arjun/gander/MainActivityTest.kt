@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
@@ -473,6 +474,28 @@ class MainActivityTest {
 
         val add = controller.rowView(context.getString(R.string.add_folder))
         assertThat(add.isLongClickable).isFalse()
+    }
+
+    /**
+     * Gander's own primary is a burnt red, so tinting only the destructive button left
+     * the two within dE 4.6 of each other on the light palette: near enough to the 2.3 a
+     * person can notice that the colour marked nothing and made Cancel look dangerous
+     * too. Both roles are asserted, because the bug was the pair being alike rather than
+     * either one being wrong.
+     */
+    @Test
+    fun theDestructiveButtonDoesNotLookLikeTheDismissiveOne() {
+        grantedFolder()
+        val controller = home()
+        controller.longPressRow("Documents")
+        val dialog = latestDialog()!!
+
+        val remove = dialog.getButton(AlertDialog.BUTTON_POSITIVE).currentTextColor
+        val cancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE).currentTextColor
+        assertThat(remove).isEqualTo(ContextCompat.getColor(context, R.color.gander_error))
+        assertThat(cancel)
+            .isEqualTo(ContextCompat.getColor(context, R.color.gander_on_surface_variant))
+        assertThat(remove).isNotEqualTo(cancel)
     }
 
     // ---------------------------------------------------------------
