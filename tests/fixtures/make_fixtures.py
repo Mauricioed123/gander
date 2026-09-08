@@ -215,6 +215,77 @@ def pdfs() -> None:
     c.save()
     written(OUT / "dense-map.pdf")
 
+    # ragged-prose.pdf: issue #22. A text layer only covers its glyphs, so the
+    # leading between lines, the white beside a short line, the gutter between
+    # two columns and the page margins belong to no span at all, and a finger
+    # dragging a selection through one of them lands on nothing. padRows() in
+    # pdf.html pads the spans until they tile the page, and this is the page
+    # shaped to make it work: ragged right ends, one line of three words, a
+    # wide blank before a heading, a two-column block with a gutter down the
+    # middle, and a row mixing 16pt with 8pt. Every other PDF fixture here is
+    # full-width lines at one size, which padRows covers without trying.
+    c = new(OUT / "ragged-prose.pdf")
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(72, 780, "Ragged prose")
+    c.setFont("Helvetica", 11)
+    y = 748
+    for line in [
+        "The first line runs the whole width of the measure and then stops here.",
+        "A shorter second line.",
+        "Three words.",
+        "The fourth line is long again, so the ragged edge above it has somewhere",
+        "to be, and the space beside it belongs to no span until padRows runs.",
+    ]:
+        c.drawString(72, y, line)
+        y -= 18
+
+    # The wide blank. Displacement is a fraction of a span's top padding, so it
+    # is invisible on an ordinary line gap and shows up on the line after this.
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(72, 540, "After a wide blank")
+    c.setFont("Helvetica", 11)
+    y = 508
+    for line in [
+        "This heading sits below 130 points of nothing, which is where the",
+        "vertical padding is largest and any error in it is largest too.",
+    ]:
+        c.drawString(72, y, line)
+        y -= 18
+
+    # Two columns, so a gap inside a row has to be covered as well as the two
+    # margins. A selection dragged down the left column passes through it.
+    y = 430
+    for left, right in [
+        ("First entry", "Fourteen"),
+        ("Second entry", "Twenty one"),
+        ("Third entry", "Three"),
+        ("Fourth entry", "Eight"),
+    ]:
+        c.drawString(72, y, left)
+        c.drawString(340, y, right)
+        y -= 18
+
+    # One row, two type sizes. Padding each item down by the same amount from
+    # where it happens to end would leave a sliver under the smaller one.
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(72, 330, "Large label")
+    c.setFont("Helvetica", 8)
+    c.drawString(300, 330, "and a caption beside it, set much smaller")
+
+    # Sideways text, which padRows skips a span at a time. The rest of the page
+    # still has to come out covered.
+    c.saveState()
+    c.rotate(90)
+    c.setFont("Helvetica", 10)
+    c.drawString(200, -560, "Printed sideways in the margin")
+    c.restoreState()
+
+    c.setFont("Helvetica", 11)
+    c.drawString(72, 120, "A last line, well clear of everything above it.")
+    c.showPage()
+    c.save()
+    written(OUT / "ragged-prose.pdf")
+
     # colours.pdf: everything night mode has to get right, in known values so a
     # test can assert exact pixels rather than "darker".
     #
