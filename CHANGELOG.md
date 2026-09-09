@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- A PDF whose images are JPEG 2000 shows them. Since pdf.js 4 the JPEG 2000 and JBIG2
+  decoders have lived in WebAssembly rather than in the bundle, fetched at the moment a
+  page meets an image needing one, and Gander shipped neither binary and never told
+  pdf.js where to look for them. The failure had nothing to notice it by: the worker
+  warns to a console nobody is reading, returns nothing, and the image is simply left
+  out, so a document arrives looking like its own layout with holes in it rather than
+  like something that went wrong. Issue #24 was a fitness book whose 190 images were 186
+  JPEG 2000, so most of it came up blank.
+
+  Scanned pages were failing the same silent way and are fixed with it. pdf.js keeps
+  JBIG2 and CCITT fax in one module, and CCITT is what a scanner or a fax reaches for
+  most of the time, so a black and white scan had been arriving as an empty frame since
+  the version of pdf.js that moved them out of the bundle. Nobody had reported that one.
+
+## 1.16 (2026-09-08)
+
 - Dragging a text selection to the bottom of a PDF now scrolls the document, so a selection
   can run past the fold without letting go and starting again. Holding a handle against an
   edge never scrolled anything, and that is not particular to this app: Chrome for Android
@@ -33,7 +49,9 @@
   be undone, since Android has no way to hand a released permission back, and the route to
   one removed by accident was a fresh trip through the system picker. A recent file still
   goes on the long-press alone: it costs a tap to open again, and the list prunes itself at
-  twenty-five.
+  twenty-five. Cancel is set in a neutral rather than in the app's own colour, which is a
+  burnt red near enough to the error red on Remove that the two together marked nothing and
+  only made Cancel look dangerous too.
 
 - Screen readers name the gesture. A row that can be removed now reads as "double tap and
   hold to Remove" rather than an unnamed long-press, and the headings and Add a folder have

@@ -35,7 +35,7 @@ should stay obviously so.
 | `six-pages.pdf` | Base rendering, six pages, base-14 fonts. Contains "tenancy" exactly three times in three cases, which is what the search tests count. |
 | `forty-pages.pdf` | Page virtualisation and go-to-page: long enough that only a band is ever drawn. |
 | `embedded-font.pdf` | `embedFonts` in `pdf.html`. Carries its own Vera face, so the text layer must name that face and not a generic. |
-| `cjk.pdf` | Issue #21. Names a CID font without embedding it, so it renders only if `lib/cmaps/` ships and `vwWithCMaps` is applied. Fails silently when it is not. |
+| `cjk.pdf` | Issue #21. Names a CID font without embedding it, so it renders only if `lib/cmaps/` ships and `vwWithAssets` is applied. Fails silently when it is not. |
 | `mixed-width.pdf` | Issue #20. One A4 page then one A3, both normalised to the same CSS width today. |
 | `ragged-prose.pdf` | Issue #22. The shapes `padRows` has to cover and no other fixture has: ragged right ends, a three-word line, a wide blank before a heading, a two-column gutter, a row mixing 16pt with 8pt, and one line printed sideways for the rotated-span skip. |
 | `encrypted.pdf` | The password flow. Standard security handler, user password `gander`. |

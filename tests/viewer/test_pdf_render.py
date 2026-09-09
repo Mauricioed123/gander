@@ -119,7 +119,7 @@ def test_chinese_text_renders_rather_than_vanishing(viewer, page):
         "() => document.querySelector('#pages .pg .textLayer span')", timeout=15000
     )
     assert "你好世界" in text_layer(page), (
-        "the Chinese line is missing; check lib/cmaps ships and vwWithCMaps is applied"
+        "the Chinese line is missing; check lib/cmaps ships and vwWithAssets is applied"
     )
 
 
