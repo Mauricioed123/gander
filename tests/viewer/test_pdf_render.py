@@ -9,8 +9,8 @@ this existed.
 import pytest
 
 from helpers import (
-    canvas_widths, drawn_count, released_count, slot_count, status_text,
-    status_visible, text_layer, wait_for_pdf, wait_for_text_layer,
+    canvas_widths, drawn_count, page_colours, released_count, slot_count,
+    status_text, status_visible, text_layer, wait_for_pdf, wait_for_text_layer,
 )
 
 
@@ -139,6 +139,72 @@ def test_the_cmap_tables_are_actually_fetched_and_found(viewer, page, server):
     found = server.served("/cmaps/")
     assert found, (
         "every CMap request was refused: "
+        f"{[(r['path'], r['status']) for r in asked][:3]}"
+    )
+    assert all(r["bytes"] > 0 for r in found)
+
+
+# ---------------------------------------------------------------------------
+# Issue #24: images vanish without the wasm decoders
+# ---------------------------------------------------------------------------
+
+# Three encodings pdf.js decodes in WebAssembly rather than in the bundle, which
+# it fetches through the wasmUrl option. Set none and every image in these
+# formats is dropped with a console warning and nothing else: no error, no
+# placeholder, and a page that looks like its own layout rather than a failure.
+#
+# Each of these counts colours on the page bitmap, because the text layer says
+# nothing about an image and a request-only assertion passes with the binary
+# deleted. Each fixture carries nothing but its image, so a dropped decode is
+# not a faint page, it is an entirely white one.
+#
+# Counted with floor=0, which the other colour tests do not do. The default drops
+# any colour with under twenty samples, and a photographic gradient is tens of
+# thousands of colours with a handful of samples each; filtered that way, a fully
+# drawn JPEG 2000 page reports as 86% white. The floor exists to ignore
+# antialiased edges, and here it would ignore the picture.
+#
+# The bar is low on purpose. Ink covers 68% of the JBIG2 page, which is drawn
+# inverted, and 5% of the CCITT one, which is black line art on white. Both are
+# correct, so the only threshold that means the same thing for all three is one
+# that separates "something decoded" from a blank sheet.
+
+@pytest.mark.parametrize("fixture,name", [
+    ("jpx.pdf", "JPEG 2000"),
+    ("jbig2.pdf", "JBIG2"),
+    ("ccitt.pdf", "CCITT fax"),
+])
+def test_an_image_needing_a_wasm_decoder_is_drawn(viewer, page, fixture, name):
+    viewer("pdf.html", fixture)
+    wait_for_pdf(page, pages=1)
+    page.wait_for_timeout(1200)
+
+    colours = page_colours(page, floor=0)
+    assert colours, f"nothing was drawn for {fixture}"
+    ink = sum(n for c, n in colours.items() if c != "255,255,255")
+    drawn = ink / sum(colours.values())
+    assert drawn > 0.02, (
+        f"the {name} image was dropped: the page is {1 - drawn:.1%} white. "
+        "Check lib/wasm ships and that vwWithAssets sets wasmUrl"
+    )
+
+
+def test_the_wasm_decoders_are_actually_fetched_and_found(viewer, page, server):
+    """
+    Asked for *and* answered, for the same reason the CMap test is written this
+    way: pdf.js asks either way, so checking the request alone still passes with
+    the binaries deleted, which is the regression this exists to catch.
+    """
+    viewer("pdf.html", "jpx.pdf")
+    wait_for_pdf(page)
+    page.wait_for_timeout(800)
+
+    asked = [r for r in server.state.requests if "/wasm/" in r["path"]]
+    assert asked, "no decoder was requested; the image was drawn some other way"
+
+    found = server.served("/wasm/")
+    assert found, (
+        "every decoder request was refused: "
         f"{[(r['path'], r['status']) for r in asked][:3]}"
     )
     assert all(r["bytes"] > 0 for r in found)

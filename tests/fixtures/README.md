@@ -36,6 +36,9 @@ should stay obviously so.
 | `forty-pages.pdf` | Page virtualisation and go-to-page: long enough that only a band is ever drawn. |
 | `embedded-font.pdf` | `embedFonts` in `pdf.html`. Carries its own Vera face, so the text layer must name that face and not a generic. |
 | `cjk.pdf` | Issue #21. Names a CID font without embedding it, so it renders only if `lib/cmaps/` ships and `vwWithAssets` is applied. Fails silently when it is not. |
+| `jpx.pdf` | Issue #24. A JPEG 2000 image, the encoding the reported file was made of. Renders only if `lib/wasm/openjpeg.wasm` ships and `vwWithAssets` sets `wasmUrl`. Fails silently when it does not. |
+| `jbig2.pdf` | Issue #24. An embedded JBIG2 stream, hand-built as a generic region with MMR coding so no JBIG2 encoder is needed to regenerate it. |
+| `ccitt.pdf` | Issue #24. The same bitmap as Group 4 fax, which shares `jbig2.wasm` with JBIG2 and is what a scanner actually produces. It was broken the whole time and never reported. |
 | `mixed-width.pdf` | Issue #20. One A4 page then one A3, both normalised to the same CSS width today. |
 | `ragged-prose.pdf` | Issue #22. The shapes `padRows` has to cover and no other fixture has: ragged right ends, a three-word line, a wide blank before a heading, a two-column gutter, a row mixing 16pt with 8pt, and one line printed sideways for the rotated-span skip. |
 | `encrypted.pdf` | The password flow. Standard security handler, user password `gander`. |

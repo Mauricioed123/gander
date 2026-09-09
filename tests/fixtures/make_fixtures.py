@@ -553,6 +553,140 @@ Text after the injected markup, so the sanitiser can be seen to have kept it.
 
 
 # ---------------------------------------------------------------------------
+# Images pdf.js decodes in WebAssembly
+# ---------------------------------------------------------------------------
+
+# Issue #24. Since pdf.js 4 three image encodings are decoded by wasm modules
+# the worker fetches on demand rather than by JavaScript in the bundle, and the
+# only way to say where those modules are is the wasmUrl option. Gander shipped
+# neither the binaries nor the option until 1.17, so every image in these three
+# encodings was dropped: the worker warns to a console nobody reads, returns
+# nothing, and the page renders with a hole where the picture goes. No error, no
+# placeholder, nothing that looks like a failure rather than a layout.
+#
+# One module, jbig2.wasm, serves both JBIG2 and CCITT fax. CCITT is the ordinary
+# compression for a scanned black and white page and by far the commoner of the
+# two, and it had been broken the whole time without anyone reporting it, which
+# is the argument for testing all three rather than the one that was reported.
+#
+# Written by hand rather than through ReportLab because the point of each file
+# is its /Filter, and a library that re-encodes to something it prefers would
+# quietly test nothing.
+
+
+def _raw_image_pdf(path: Path, w: int, h: int, entries: bytes, data: bytes) -> None:
+    """A one-page PDF whose only content is a single image XObject, undecoded."""
+    content = b"q 480 0 0 200 20 30 cm /Im0 Do Q"
+    objs = {
+        1: b"<< /Type /Catalog /Pages 2 0 R >>",
+        2: b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        3: (b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 520 260] "
+            b"/Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>"),
+        4: b"<< /Length %d >>\nstream\n" % len(content) + content + b"\nendstream",
+        5: (b"<< /Type /XObject /Subtype /Image /Width %d /Height %d "
+            b"%s /Length %d >>\nstream\n" % (w, h, entries, len(data))
+            + data + b"\nendstream"),
+    }
+    out = bytearray(b"%PDF-1.7\n%\xe2\xe3\xcf\xd3\n")
+    offsets = {}
+    for n in sorted(objs):
+        offsets[n] = len(out)
+        out += b"%d 0 obj\n" % n + objs[n] + b"\nendobj\n"
+    start = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1)
+    for n in sorted(objs):
+        out += b"%010d 00000 n \n" % offsets[n]
+    out += (b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n"
+            % (len(objs) + 1, start))
+    path.write_bytes(bytes(out))
+
+
+def _bitonal(w: int, h: int):
+    """Black on white, with a circle and two text runs, so a partial decode shows."""
+    from PIL import Image, ImageDraw
+    im = Image.new("1", (w, h), 1)
+    d = ImageDraw.Draw(im)
+    d.rectangle([10, 10, w - 11, h - 11], outline=0, width=3)
+    d.text((40, 60), "SCANNED PAGE", fill=0)
+    d.text((40, 90), "this line proves the decoder ran", fill=0)
+    d.ellipse([w - 150, 40, w - 50, 140], outline=0, width=4)
+    return im
+
+
+def _group4(im) -> bytes:
+    """T.6 data, taken out of a Group 4 TIFF because Pillow will write one."""
+    from PIL import Image
+    buf = io.BytesIO()
+    im.save(buf, format="TIFF", compression="group4")
+    buf.seek(0)
+    tiff = Image.open(buf)
+    raw = buf.getvalue()
+    return b"".join(raw[o:o + c] for o, c in
+                    zip(tiff.tag_v2[273], tiff.tag_v2[279]))
+
+
+def wasm_decoded_images() -> None:
+    from PIL import Image, ImageDraw
+
+    W, H = 480, 200
+
+    # jpx.pdf: JPEG 2000, which is what issue #24's file was made of. A
+    # photograph rather than a diagram, because JPEG 2000 is a photographic
+    # codec and a flat drawing would compress to something unrepresentative.
+    photo = Image.new("RGB", (W, H))
+    px = photo.load()
+    for y in range(H):
+        for x in range(W):
+            px[x, y] = ((x * 255) // W, (y * 255) // H, ((x + y) * 127) // (W + H))
+    d = ImageDraw.Draw(photo)
+    d.ellipse([W - 150, 40, W - 50, 140], fill=(250, 250, 40))
+    d.text((40, 90), "JPEG 2000", fill=(255, 255, 255))
+    buf = io.BytesIO()
+    photo.save(buf, format="JPEG2000", irreversible=True, quality_layers=[40])
+    # No /ColorSpace: for JPXDecode the codestream carries it, and naming one
+    # here would let a reader that ignored the image still look correct.
+    _raw_image_pdf(OUT / "jpx.pdf", W, H, b"/Filter /JPXDecode", buf.getvalue())
+    written(OUT / "jpx.pdf")
+
+    bitonal = _bitonal(W, H)
+    mmr = _group4(bitonal)
+
+    # jbig2.pdf: an embedded JBIG2 stream, which is a bare segment sequence with
+    # no file header. A generic region with MMR=1 carries plain T.6 data, so the
+    # Group 4 bytes above can be reused and the fixture needs no JBIG2 encoder
+    # on the machine generating it.
+    page_info = struct.pack(">IIII", W, H, 0, 0) + bytes([0x01]) + struct.pack(">H", 0)
+    region = (struct.pack(">IIII", W, H, 0, 0)   # region position and size
+              + bytes([0x00])                    # combine into the page by OR
+              + bytes([0x01])                    # MMR = 1, so no arithmetic coder
+              + mmr)
+
+    def segment(number: int, kind: int, data: bytes) -> bytes:
+        return (struct.pack(">I", number)
+                + bytes([kind & 0x3F])   # one-byte page association
+                + bytes([0x00])          # refers to no other segment
+                + bytes([0x01])          # page 1
+                + struct.pack(">I", len(data))
+                + data)
+
+    jb2 = segment(0, 48, page_info) + segment(1, 39, region)
+    _raw_image_pdf(OUT / "jbig2.pdf", W, H,
+                   b"/ColorSpace /DeviceGray /BitsPerComponent 1 /Filter /JBIG2Decode",
+                   jb2)
+    written(OUT / "jbig2.pdf")
+
+    # ccitt.pdf: the same bitmap as plain Group 4, which is what a scanner or a
+    # fax produces and what jbig2.wasm turns out to decode as well.
+    _raw_image_pdf(OUT / "ccitt.pdf", W, H,
+                   b"/ColorSpace /DeviceGray /BitsPerComponent 1 "
+                   b"/Filter /CCITTFaxDecode "
+                   b"/DecodeParms << /K -1 /Columns %d /Rows %d /BlackIs1 true >>"
+                   % (W, H),
+                   mmr)
+    written(OUT / "ccitt.pdf")
+
+
+# ---------------------------------------------------------------------------
 # Images and audio
 # ---------------------------------------------------------------------------
 
@@ -633,7 +767,7 @@ def audio() -> None:
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     print(f"Writing fixtures into {OUT}")
-    for step in (pdfs, docx, xlsx, pptx, texts, images, audio):
+    for step in (pdfs, wasm_decoded_images, docx, xlsx, pptx, texts, images, audio):
         step()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.is_file())
     count = sum(1 for p in OUT.iterdir() if p.is_file())
