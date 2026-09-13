@@ -94,9 +94,14 @@ class ViewerServer:
             def _send(self, status, body, headers):
                 # Recorded against the request this is answering, so a test can
                 # tell "asked for and got it" from "asked for and got a 404".
-                if state.requests:
-                    state.requests[-1]["status"] = status
-                    state.requests[-1]["bytes"] = len(body)
+                # Held on the handler rather than read back as the last entry in
+                # the log: requests are answered on parallel threads, and pdf.js
+                # asks for a CMap, a decoder and a range of the document at once,
+                # so the last entry can belong to a request that came in after.
+                record = getattr(self, "record", None)
+                if record is not None:
+                    record["status"] = status
+                    record["bytes"] = len(body)
                 self.send_response(status)
                 for k, v in headers.items():
                     self.send_header(k, v)
@@ -106,12 +111,13 @@ class ViewerServer:
 
             def do_GET(self):
                 path = self.path.split("?", 1)[0]
-                state.requests.append({
+                self.record = {
                     "path": path,
                     "range": self.headers.get("Range"),
                     "status": None,
                     "bytes": 0,
-                })
+                }
+                state.requests.append(self.record)
 
                 if path.startswith("/doc/"):
                     return self._document()
