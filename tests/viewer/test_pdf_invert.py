@@ -461,12 +461,18 @@ def test_a_tile_away_from_the_page_corner_still_finds_the_photograph(viewer, pag
     assert daylight > 0, "the fixture's lower illustration is not in the panned tile"
     night_count, turned = red_in_tile(True)
 
-    # Not an equality. Panning is a synthesised fling and does not land on the same
-    # pixel twice, so the tile covers a slightly different rectangle each run and a
-    # few hundred pixels of the illustration fall in or out of it. What must not
-    # move is the colour: a clip landing anywhere but on the illustration would
-    # turn it over, and 200,30,30 would come back as 255,153,153.
-    assert turned == 0, "the illustration in the panned tile was turned over"
+    # Neither is an equality. Each pass loads the page and pans afresh, so its tile can
+    # be cut a pixel differently and a few hundred pixels of the illustration fall in or
+    # out of it.
+    #
+    # And the colour is allowed one row of edge. imageQuads rounds the clip to the
+    # nearest pixel on purpose, so the last row of a photograph can land on either side
+    # of it, and whether the one-in-three sample grid falls on that row depends on the
+    # zoom: at 3 it does not, at 4 it does. A clip landing anywhere but on the
+    # illustration turns all of it over, 200,30,30 coming back as 255,153,153, which is
+    # a hundred times more than this allows.
+    assert turned < night_count * 0.01, \
+        f"the illustration in the panned tile was turned over: {turned} of {night_count} samples"
     assert abs(night_count - daylight) < daylight * 0.05, \
         f"the clip covered a different part of the page: {night_count} vs {daylight}"
 
