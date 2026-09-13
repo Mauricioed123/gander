@@ -18,12 +18,13 @@ produces an installable build without any signing setup.
 
 ## Testing changes
 
-Two suites, both run by CI on every pull request:
+Two suites and lint, all run by CI on every pull request:
 
 ```sh
 ./gradlew testDebugUnitTest      # Kotlin: routing, ranges, the port protocol
+./gradlew lintDebug              # fails on any warning not in app/lint-baseline.xml
 pip install -r tests/viewer/requirements.txt
-python -m playwright install chromium
+python -m playwright install --with-deps chromium
 pytest tests/viewer              # the viewer pages, in a real browser
 ```
 
