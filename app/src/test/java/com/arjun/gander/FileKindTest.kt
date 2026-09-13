@@ -1,0 +1,244 @@
+package com.arjun.gander
+
+import com.arjun.gander.FileKind.DOCX
+import com.arjun.gander.FileKind.IMAGE
+import com.arjun.gander.FileKind.IMAGE_WEB
+import com.arjun.gander.FileKind.MD
+import com.arjun.gander.FileKind.PDF
+import com.arjun.gander.FileKind.PLAYER
+import com.arjun.gander.FileKind.PPTX
+import com.arjun.gander.FileKind.TEXT
+import com.arjun.gander.FileKind.UNSUPPORTED
+import com.arjun.gander.FileKind.XLSX
+import com.google.common.truth.Truth.assertThat
+import java.io.File
+import org.junit.Test
+
+/**
+ * The format registry, pinned extension by extension.
+ *
+ * [EXPECTED] is written out in full rather than derived from the sets in
+ * [FileKind], because a test that reads the same data as the code under test
+ * agrees with it whatever either one says. Adding a format means adding a line
+ * here, and that is the point: the table is the reviewable record of what
+ * Gander claims to open.
+ */
+class FileKindTest {
+
+    private companion object {
+        /** Every extension the app routes, and where it goes. */
+        val EXPECTED: Map<String, FileKind> = mapOf(
+            // Photos, drawn by the native tiling view
+            "jpg" to IMAGE, "jpeg" to IMAGE, "png" to IMAGE, "webp" to IMAGE,
+            "bmp" to IMAGE, "heic" to IMAGE, "heif" to IMAGE,
+
+            // Images the WebView decodes better than the region decoder does
+            "gif" to IMAGE_WEB, "svg" to IMAGE_WEB, "avif" to IMAGE_WEB,
+            "ico" to IMAGE_WEB,
+
+            "pdf" to PDF,
+
+            // Video
+            "mp4" to PLAYER, "m4v" to PLAYER, "mov" to PLAYER, "mkv" to PLAYER,
+            "webm" to PLAYER, "3gp" to PLAYER, "3g2" to PLAYER, "m2ts" to PLAYER,
+            "mts" to PLAYER, "avi" to PLAYER, "flv" to PLAYER,
+
+            // Audio
+            "mp3" to PLAYER, "m4a" to PLAYER, "aac" to PLAYER, "flac" to PLAYER,
+            "wav" to PLAYER, "ogg" to PLAYER, "oga" to PLAYER, "opus" to PLAYER,
+            "amr" to PLAYER,
+
+            "docx" to DOCX,
+
+            // Spreadsheets. csv is here and not in the text list: see
+            // csvIsASpreadsheetBecauseSheetsAreCheckedFirst below.
+            "xlsx" to XLSX, "xls" to XLSX, "xlsm" to XLSX, "xlsb" to XLSX,
+            "csv" to XLSX, "ods" to XLSX,
+
+            "pptx" to PPTX,
+
+            "md" to MD, "markdown" to MD,
+
+            // Text and code
+            "txt" to TEXT, "log" to TEXT, "json" to TEXT, "xml" to TEXT,
+            "yaml" to TEXT, "yml" to TEXT, "kt" to TEXT, "java" to TEXT,
+            "py" to TEXT, "js" to TEXT, "ts" to TEXT, "html" to TEXT,
+            "htm" to TEXT, "css" to TEXT, "sh" to TEXT, "zsh" to TEXT,
+            "bash" to TEXT, "c" to TEXT, "cpp" to TEXT, "h" to TEXT,
+            "hpp" to TEXT, "rs" to TEXT, "go" to TEXT, "rb" to TEXT,
+            "php" to TEXT, "sql" to TEXT, "swift" to TEXT, "dart" to TEXT,
+            "gradle" to TEXT, "properties" to TEXT, "toml" to TEXT,
+            "ini" to TEXT, "cfg" to TEXT, "conf" to TEXT, "tex" to TEXT,
+            "r" to TEXT,
+        )
+
+        const val MIME_DOCX =
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        const val MIME_XLSX =
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        const val MIME_PPTX =
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        const val MIME_ODS = "application/vnd.oasis.opendocument.spreadsheet"
+    }
+
+    @Test
+    fun everyKnownExtensionRoutesToItsKind() {
+        EXPECTED.forEach { (ext, kind) ->
+            assertThat(FileKind.detect(ext, null)).isEqualTo(kind)
+        }
+    }
+
+    /** A count, so a silently deleted table row is noticed. */
+    @Test
+    fun theTableCoversSeventyEightExtensions() {
+        assertThat(EXPECTED).hasSize(78)
+    }
+
+    @Test
+    fun everyKindIsReachableFromSomeExtensionExceptUnsupported() {
+        val reached = EXPECTED.values.toSet()
+        val unreachable = FileKind.entries.toSet() - reached - UNSUPPORTED
+        assertThat(unreachable).isEmpty()
+    }
+
+    // ---------------------------------------------------------------
+    // The ordering rules inside detect(), each of which is load bearing
+    // ---------------------------------------------------------------
+
+    /**
+     * .ts is TypeScript far more often than it is a transport stream, so it
+     * reads as text unless the provider positively says otherwise. That branch
+     * is first in the when, ahead of every extension set.
+     */
+    @Test
+    fun tsIsTypeScriptUnlessTheProviderCallsItVideo() {
+        assertThat(FileKind.detect("ts", null)).isEqualTo(TEXT)
+        assertThat(FileKind.detect("ts", "text/plain")).isEqualTo(TEXT)
+        assertThat(FileKind.detect("ts", "video/mp2t")).isEqualTo(PLAYER)
+    }
+
+    /**
+     * The extension is trusted over the MIME type throughout. A provider that
+     * mislabels a text file as a PDF does not get to send it to the PDF
+     * renderer, which would fail where the text viewer succeeds.
+     */
+    @Test
+    fun theExtensionBeatsTheMimeType() {
+        assertThat(FileKind.detect("txt", "application/pdf")).isEqualTo(TEXT)
+        assertThat(FileKind.detect("pdf", "text/plain")).isEqualTo(PDF)
+        assertThat(FileKind.detect("png", "application/octet-stream")).isEqualTo(IMAGE)
+    }
+
+    /**
+     * csv appears in both the spreadsheet and the text sets, and the
+     * spreadsheet branch is checked first, so it opens as a sheet. The text
+     * membership is unreachable. Pinned because it looks like an accident and
+     * is not: a CSV is more useful in a grid than in a monospace block.
+     */
+    @Test
+    fun csvIsASpreadsheetBecauseSheetsAreCheckedFirst() {
+        assertThat(FileKind.detect("csv", null)).isEqualTo(XLSX)
+        assertThat(FileKind.detect("csv", "text/csv")).isEqualTo(XLSX)
+    }
+
+    // ---------------------------------------------------------------
+    // The MIME fallbacks, which are all that is left when a share sheet
+    // hands over a name with no extension on it
+    // ---------------------------------------------------------------
+
+    @Test
+    fun mimeTypesRouteWhenThereIsNoExtension() {
+        val byMime = mapOf(
+            "application/pdf" to PDF,
+            "video/mp4" to PLAYER,
+            "audio/mpeg" to PLAYER,
+            MIME_DOCX to DOCX,
+            MIME_XLSX to XLSX,
+            "application/vnd.ms-excel" to XLSX,
+            "text/csv" to XLSX,
+            MIME_ODS to XLSX,
+            MIME_PPTX to PPTX,
+            "image/png" to IMAGE_WEB,
+            "text/plain" to TEXT,
+            "application/json" to TEXT,
+            "application/xml" to TEXT,
+        )
+        byMime.forEach { (mime, kind) ->
+            assertThat(FileKind.detect("", mime)).isEqualTo(kind)
+        }
+    }
+
+    /**
+     * An image arriving by MIME alone goes to the WebView rather than the
+     * tiling view, because the tiling view needs a region decoder and this
+     * could be any of the formats only Chromium reads.
+     */
+    /**
+     * .ods has been in the extension set and both intent filters since 1.7,
+     * but not in the MIME fallback, so a spreadsheet shared with no filename
+     * on it was offered a viewer and then refused one.
+     */
+    @Test
+    fun openDocumentSpreadsheetsRouteByMimeAsWellAsByExtension() {
+        assertThat(FileKind.detect("ods", null)).isEqualTo(XLSX)
+        assertThat(FileKind.detect("", MIME_ODS)).isEqualTo(XLSX)
+    }
+
+    @Test
+    fun imagesByMimeGoToTheWebViewer() {
+        assertThat(FileKind.detect("", "image/jpeg")).isEqualTo(IMAGE_WEB)
+        assertThat(FileKind.detect("", "image/svg+xml")).isEqualTo(IMAGE_WEB)
+    }
+
+    @Test
+    fun anythingElseIsUnsupported() {
+        assertThat(FileKind.detect("", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("xyz", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("doc", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("ppt", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("odt", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("", "application/octet-stream")).isEqualTo(UNSUPPORTED)
+    }
+
+    // ---------------------------------------------------------------
+
+    @Test
+    fun isAudioExtSeparatesAudioFromVideoWithinPlayer() {
+        listOf("mp3", "m4a", "aac", "flac", "wav", "ogg", "oga", "opus", "amr")
+            .forEach { assertThat(FileKind.isAudioExt(it)).isTrue() }
+        listOf("mp4", "mkv", "webm", "avi", "pdf", "")
+            .forEach { assertThat(FileKind.isAudioExt(it)).isFalse() }
+    }
+
+    /**
+     * detect() expects an already lowercased extension, and every caller
+     * lowercases before it. Pinned as a precondition rather than fixed here,
+     * because the fix belongs in one place and this test would hide it.
+     */
+    @Test
+    fun detectExpectsTheExtensionAlreadyLowercased() {
+        assertThat(FileKind.detect("PDF", null)).isEqualTo(UNSUPPORTED)
+        assertThat(FileKind.detect("pdf", null)).isEqualTo(PDF)
+    }
+
+    /**
+     * Every kind that names a page must name one that ships. A renamed or
+     * deleted viewer page is otherwise a blank WebView at runtime and nothing
+     * at build time.
+     */
+    @Test
+    fun everyKindNamesAViewerPageThatExists() {
+        FileKind.entries.filter { it.page.isNotEmpty() }.forEach { kind ->
+            val page = File("src/main/assets/viewer/${kind.page}")
+            assertThat("${kind.name} -> ${page.path}, exists=${page.exists()}")
+                .isEqualTo("${kind.name} -> ${page.path}, exists=true")
+        }
+    }
+
+    /** The two kinds a native view draws carry no page at all. */
+    @Test
+    fun nativeKindsNameNoPage() {
+        assertThat(IMAGE.page).isEmpty()
+        assertThat(PLAYER.page).isEmpty()
+    }
+}

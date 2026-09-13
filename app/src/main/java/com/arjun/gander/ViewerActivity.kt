@@ -74,66 +74,6 @@ class ViewerActivity : AppCompatActivity() {
         const val EXTRA_PATH = "path"
         private const val STATE_COPY_SOURCE = "copy_source"
         private const val ASSET_HOST = "appassets.androidplatform.net"
-        private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
-        private const val DOWNLOADS_AUTHORITY = "com.android.providers.downloads.documents"
-
-        /**
-         * Above this, a document is served in ranges rather than read whole.
-         *
-         * This is a memory threshold, not a speed one. Bulk and ranged loading were
-         * measured against each other at 0.2, 2.7, 8, 16, 32 and 53 MB on a Nothing
-         * Phone 2: below about 32 MB the difference had no consistent sign and stayed
-         * inside run-to-run noise, and only at 53 MB did ranging win repeatably, by
-         * around 80 ms. So anywhere in that band is equally defensible on speed, and
-         * the number is chosen instead for what it avoids holding in memory. 16 MB is
-         * comfortable to buffer on a low-end device; a 50 MB scan is not.
-         */
-        private const val RANGE_THRESHOLD_BYTES = 16L * 1024 * 1024
-
-        /**
-         * Chromium major version the vendored pdf.js needs. Mozilla puts the legacy
-         * build's floor at Chrome 125, and `lib/pdf.min.mjs` is pdfjs-dist 5.7.284
-         * legacy. Below it, `pdf.html` says so instead of loading the renderer.
-         *
-         * Read this before raising it alongside a pdf.js upgrade. Chromium 138 is the
-         * last WebView that Android 8.0, 8.1 and 9.0 will ever receive, because 139
-         * requires Android 10 and minSdk here is 26. A pdf.js release needing more than
-         * 138 therefore does not degrade on API 26 to 28, it ends PDF support there for
-         * good. docs/VENDORED.md carries the same warning next to the version fetched.
-         */
-        private const val PDFJS_MIN_CHROMIUM_MAJOR = 125
-
-        /**
-         * Below this, a parsed major is treated as unreadable rather than as ancient.
-         * WebView only became updatable at Chromium 33, so a provider reporting
-         * something like "1.0" is telling us it does not use Chromium version numbers,
-         * not that it predates them, and refusing its PDFs would break a device that
-         * works today.
-         *
-         * This is why the user agent is asked first. Huawei numbers its WebView 12.1.x,
-         * 14.0.x, 15.0.x, so a genuinely old engine parsed to 15 from the package alone,
-         * landed under this floor, and was waved through as unreadable. Reading Chrome/
-         * out of the user agent gives the engine version whatever the vendor calls the
-         * package, and a provider that reports neither is caught by
-         * [LOCKED_WEBVIEW_PACKAGES] instead of by guessing.
-         */
-        private const val PLAUSIBLE_CHROMIUM_MAJOR = 30
-
-        /** The Chromium major in a WebView user agent, as in "Chrome/138.0.7204.179". */
-        private val CHROME_TOKEN = Regex("""Chrome/(\d+)""")
-
-        /**
-         * WebView providers that cannot be swapped for another one.
-         *
-         * On a Huawei device without Google services the provider is pinned to this
-         * package: Chrome and Android System WebView are both rejected, because they are
-         * signed against a certificate chain the device does not carry. Two consequences.
-         * The card must not tell these users to update Android System WebView, since they
-         * cannot. And a version we failed to read is old rather than unknown, because no
-         * Huawei build reaches the pdf.js floor, so this is the one case where an
-         * unreadable version blocks instead of being waved through.
-         */
-        private val LOCKED_WEBVIEW_PACKAGES = setOf("com.huawei.webview")
 
         /**
          * How long the page readout stays up after the last scroll, and how long it
@@ -373,7 +313,7 @@ class ViewerActivity : AppCompatActivity() {
         // WebView is too old for the renderer: pdfjsFloorParams is non-empty exactly
         // then, and turning a card that says "update your WebView" dark is not a
         // feature. Same standard as the two above, and as action_search.
-        val blocked = pdfjsFloorParams(kind, webView?.settings?.userAgentString).isNotEmpty()
+        val blocked = pdfjsFloorParamsFor(kind, webView?.settings?.userAgentString).isNotEmpty()
         if (kind != FileKind.PDF || !canPortSearch() || blocked) {
             item.isVisible = false
             return
@@ -385,7 +325,7 @@ class ViewerActivity : AppCompatActivity() {
             it.isChecked = on
             Settings.setNight(this, on)
             if (searchPort != null) loadedNight = on
-            searchPort?.postMessage(WebMessageCompat(if (on) "i1" else "i0"))
+            searchPort?.postMessage(WebMessageCompat(PortCommand.nightMode(on)))
             true
         }
     }
@@ -417,55 +357,18 @@ class ViewerActivity : AppCompatActivity() {
      * Null when the source provider does not expose a real filesystem location,
      * which hides the menu item.
      */
-    private fun containingFolder(uri: Uri): Uri? = runCatching {
-        when {
-            uri.scheme == "file" ->
-                File(uri.path!!).parent?.let { folderDocUri(it) }
-            uri.authority == EXTERNAL_STORAGE_AUTHORITY -> {
-                // Document id is "volume:relative/path"; drop the file segment
-                val docId = DocumentsContract.getDocumentId(uri)
-                val volume = docId.substringBefore(':', "")
-                val path = docId.substringAfter(':', "")
-                if (volume.isEmpty() || path.isEmpty()) null
-                else DocumentsContract.buildDocumentUri(
-                    EXTERNAL_STORAGE_AUTHORITY,
-                    "$volume:${path.substringBeforeLast('/', "")}"
-                )
-            }
-            uri.authority == DOWNLOADS_AUTHORITY -> {
-                val docId = DocumentsContract.getDocumentId(uri)
-                if (docId.startsWith("raw:")) {
-                    File(docId.removePrefix("raw:")).parent?.let { folderDocUri(it) }
-                } else {
-                    // Opaque ids (msf:42) at least live under Download
-                    DocumentsContract.buildDocumentUri(
-                        EXTERNAL_STORAGE_AUTHORITY, "primary:Download"
-                    )
-                }
-            }
-            uri.authority == "media" ->
-                // Our read grant lets us ask MediaStore for the backing path
-                contentResolver.query(uri, arrayOf("_data"), null, null, null)?.use { c ->
-                    if (!c.moveToFirst()) null
-                    else c.getString(0)?.let { File(it).parent }?.let { folderDocUri(it) }
-                }
-            else -> null
+    /**
+     * The folder this document is in. The MediaStore lookup is supplied here
+     * because it needs a resolver; the rest is provider id string work and
+     * lives in StorageUris.kt.
+     */
+    private fun containingFolder(uri: Uri): Uri? = parentDocUri(
+        uri,
+        Environment.getExternalStorageDirectory().absolutePath
+    ) { mediaUri ->
+        contentResolver.query(mediaUri, arrayOf("_data"), null, null, null)?.use { c ->
+            if (c.moveToFirst()) c.getString(0) else null
         }
-    }.getOrNull()
-
-    /** Maps an absolute folder path to an ExternalStorageProvider document URI. */
-    private fun folderDocUri(path: String): Uri? {
-        val primary = Environment.getExternalStorageDirectory().absolutePath
-        val docId = when {
-            path.startsWith(primary) ->
-                "primary:" + path.removePrefix(primary).trimStart('/')
-            path.startsWith("/storage/") -> {
-                val rest = path.removePrefix("/storage/")
-                rest.substringBefore('/') + ":" + rest.substringAfter('/', "")
-            }
-            else -> return null
-        }
-        return DocumentsContract.buildDocumentUri(EXTERNAL_STORAGE_AUTHORITY, docId)
     }
 
     private fun openFolder(folder: Uri) {
@@ -737,7 +640,7 @@ class ViewerActivity : AppCompatActivity() {
                 entry.error = getString(R.string.page_out_of_range, total)
             } else {
                 // Straight down the channel search uses. See PortFinder for the shape.
-                searchPort?.postMessage(WebMessageCompat("g$n"))
+                searchPort?.postMessage(WebMessageCompat(PortCommand.goToPage(n)))
                 dialog.dismiss()
             }
         }
@@ -901,14 +804,7 @@ class ViewerActivity : AppCompatActivity() {
         val extent = web.verticalExtent()
         if (extent <= 0) return
 
-        // Two thresholds rather than one. pptx.html reports itself finished as soon as
-        // the first slide exists and keeps appending for seconds after, so a single line
-        // here has the thumb appear, vanish and appear again while a deck loads.
-        thumbShown = when {
-            range > extent * 2 -> true
-            range < extent * 3 / 2 -> false
-            else -> thumbShown
-        }
+        thumbShown = thumbShown(range, extent, thumbShown)
         if (!thumbShown) {
             hideFastScrollNow()
             return
@@ -916,19 +812,14 @@ class ViewerActivity : AppCompatActivity() {
 
         val trackHeight = track.height
         if (trackHeight <= 0) return
-        // Proportional, with a floor. Proportional alone is two pixels on a 357-page
-        // document; a fixed height says nothing about how much is left in a short one.
         val floor = resources.getDimensionPixelSize(R.dimen.fast_scroll_thumb_min)
-        val height = maxOf(floor, (trackHeight.toLong() * extent / range).toInt())
-            .coerceAtMost(trackHeight)
+        val height = thumbHeight(trackHeight, extent, range, floor)
         if (thumb.layoutParams.height != height) {
             thumb.layoutParams = thumb.layoutParams.also { it.height = height }
         }
         if (!dragging) {
-            val travel = (trackHeight - height).toFloat()
-            val scrollable = (range - extent).toFloat()
             thumb.translationY =
-                if (scrollable > 0f) travel * (web.verticalOffset() / scrollable) else 0f
+                thumbOffset(trackHeight, height, web.verticalOffset(), range, extent)
         }
         showFastScroll()
         excludeThumbFromBackGesture()
@@ -941,10 +832,8 @@ class ViewerActivity : AppCompatActivity() {
         if (travel <= 0f) return
         val at = (y - grabOffset).coerceIn(0f, travel)
         thumb.translationY = at
-        val fraction = at / travel
-        val scrollable = web.verticalRange() - web.verticalExtent()
-        if (scrollable > 0) queueScroll((fraction * scrollable).toInt())
-        showDragReadout(fraction)
+        dragTarget(at, travel, web.verticalRange(), web.verticalExtent())?.let(::queueScroll)
+        showDragReadout(at / travel)
     }
 
     /**
@@ -1142,13 +1031,13 @@ class ViewerActivity : AppCompatActivity() {
         }
         override fun query(q: String) {
             pendingQuery = q
-            send("q$q")
+            send(PortCommand.query(q))
         }
-        override fun next() = send("n")
-        override fun prev() = send("p")
+        override fun next() = send(PortCommand.next())
+        override fun prev() = send(PortCommand.prev())
         override fun clear() {
             pendingQuery = ""
-            send("c")
+            send(PortCommand.clear())
         }
     }
 
@@ -1180,38 +1069,32 @@ class ViewerActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()),
             object : WebMessagePortCompat.WebMessageCallbackCompat() {
                 override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
-                    val said = message?.data?.split(" ") ?: return
-                    // Tagged, and read first. The search message below is three bare
-                    // numbers and is left exactly as it was; "page" is not an integer,
-                    // so it was already being dropped there before this branch existed.
-                    if (said.size == 3 && said[0] == "page") {
-                        val n = said[1].toIntOrNull() ?: return
-                        val of = said[2].toIntOrNull() ?: return
-                        if (n < 1 || of < 1 || n > of) return
-                        if (pageTotal == 0) goToPageItem?.isVisible = true
-                        pageAt = n
-                        pageTotal = of
-                        setPageIndicatorText()
-                        showPageIndicator()
-                        return
+                    when (val said = parsePortMessage(message?.data)) {
+                        is PortMessage.Page -> {
+                            if (pageTotal == 0) goToPageItem?.isVisible = true
+                            pageAt = said.n
+                            pageTotal = said.of
+                            setPageIndicatorText()
+                            showPageIndicator()
+                        }
+                        is PortMessage.SearchCount ->
+                            onSearchCount?.invoke(said.at, said.total, said.done)
+                        // Anything else came from the document rather than from
+                        // the renderer, and is dropped without a word.
+                        null -> Unit
                     }
-                    if (said.size != 3) return
-                    val at = said[0].toIntOrNull() ?: return
-                    val total = said[1].toIntOrNull() ?: return
-                    if (at < 0 || total < 0) return
-                    onSearchCount?.invoke(at, total, said[2] == "1")
                 }
             })
         searchPort = mine
         WebViewCompat.postWebMessage(
             web, WebMessageCompat("vw-search-port", arrayOf(ends[1])), Uri.parse("*"))
         // Anything typed while there was nowhere to send it.
-        if (pendingQuery.isNotEmpty()) mine.postMessage(WebMessageCompat("q$pendingQuery"))
+        if (pendingQuery.isNotEmpty()) mine.postMessage(WebMessageCompat(PortCommand.query(pendingQuery)))
         // And any night mode tapped in the same window. Compared against what the URL
         // carried rather than tracked as a flag, so any number of taps comes out right.
         if (Settings.night(this) != loadedNight) {
             loadedNight = Settings.night(this)
-            mine.postMessage(WebMessageCompat(if (loadedNight) "i1" else "i0"))
+            mine.postMessage(WebMessageCompat(PortCommand.nightMode(loadedNight)))
         }
     }
 
@@ -1532,7 +1415,7 @@ class ViewerActivity : AppCompatActivity() {
                 "?name=${Uri.encode(name)}&ext=${Uri.encode(ext)}&ranged=$ranged" +
                 "&night=$night" +
                 (if (resumeAt > 1) "&resume=$resumeAt" else "") +
-                pdfjsFloorParams(kind, web.settings.userAgentString)
+                pdfjsFloorParamsFor(kind, web.settings.userAgentString)
         )
     }
 
@@ -1626,37 +1509,14 @@ class ViewerActivity : AppCompatActivity() {
     }
 
     /**
-     * Whether to serve this document in ranges. Decided in one place because both
-     * the response headers and the page's choice of loader have to agree.
+     * What the two sources say about the engine, handed to [chromiumMajor] to
+     * be read. Only the package lookup is wrapped, because getCurrentWebViewPackage
+     * talks to the package manager and a provider in a bad state can throw, and it
+     * is only made once the user agent has failed to answer.
      */
-    private fun useRanges(total: Long): Boolean =
-        total >= RANGE_THRESHOLD_BYTES
-
-    /**
-     * Chromium major version of the WebView that will render the page.
-     *
-     * The user agent is asked first, because its Chrome/ token is the engine version
-     * whatever the provider calls its package, and a vendor scheme like Huawei's
-     * "15.0.4.326" says nothing about the engine. The package versionName is kept as a
-     * fallback for a provider whose user agent carries no Chrome/ token at all.
-     *
-     * Null when neither source answers, or when both are too low to be a Chromium
-     * version. A null is treated as new enough unless the provider is locked: refusing
-     * PDFs on a WebView that works would be the worse mistake, and pdf.html's nomodule
-     * fallback still covers the oldest engines a null could hide.
-     */
-    private fun webViewChromiumMajor(userAgent: String?): Int? = runCatching {
-        val fromUa = userAgent
-            ?.let { CHROME_TOKEN.find(it) }
-            ?.groupValues?.get(1)
-            ?.toIntOrNull()
-            ?.takeIf { it >= PLAUSIBLE_CHROMIUM_MAJOR }
-        fromUa ?: WebViewCompat.getCurrentWebViewPackage(this)
-            ?.versionName
-            ?.substringBefore('.')
-            ?.toIntOrNull()
-            ?.takeIf { it >= PLAUSIBLE_CHROMIUM_MAJOR }
-    }.getOrNull()
+    private fun webViewChromiumMajor(userAgent: String?): Int? = chromiumMajor(userAgent) {
+        runCatching { WebViewCompat.getCurrentWebViewPackage(this)?.versionName }.getOrNull()
+    }
 
     /** Whether the WebView about to render cannot be swapped for a different one. */
     private fun webViewProviderIsLocked(): Boolean = runCatching {
@@ -1664,55 +1524,18 @@ class ViewerActivity : AppCompatActivity() {
     }.getOrDefault(false)
 
     /**
-     * The parameters telling pdf.html it cannot render, and empty otherwise, including
-     * for every other format: pdf.html is the only viewer loaded as an ES module, and
-     * the rest are classic scripts that any engine can parse.
-     *
-     * "&webview=<major>&needs=<floor>" when the engine is older than the vendored
-     * pdf.js supports. Both numbers are passed so the floor lives only in Kotlin rather
-     * than being repeated as a literal inside a user-facing sentence in the page.
-     *
-     * "&locked=1" is added when updating the WebView is not something the reader can
-     * do, so the page can drop the advice to go and update it. On a locked provider
-     * whose version would not parse, that flag goes out on its own with no major beside
-     * it, which is why the page gates on either parameter rather than on the version.
+     * The engine's own answers, resolved before [pdfjsFloorParams] reads them, and
+     * only for a PDF: no other page needs them, so opening anything else asks nothing.
      */
-    private fun pdfjsFloorParams(kind: FileKind, userAgent: String?): String {
+    private fun pdfjsFloorParamsFor(kind: FileKind, userAgent: String?): String {
         if (kind != FileKind.PDF) return ""
-        val locked = webViewProviderIsLocked()
-        val major = webViewChromiumMajor(userAgent)
-            ?: return if (locked) "&needs=$PDFJS_MIN_CHROMIUM_MAJOR&locked=1" else ""
-        if (major >= PDFJS_MIN_CHROMIUM_MAJOR) return ""
-        return "&webview=$major&needs=$PDFJS_MIN_CHROMIUM_MAJOR" + if (locked) "&locked=1" else ""
-    }
-
-    /** Content type for the document, from the extension rather than the provider. */
-    private fun documentMime(ext: String): String = when (ext) {
-        "svg" -> "image/svg+xml"
-        else -> MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-            ?: "application/octet-stream"
+        return pdfjsFloorParams(kind, webViewChromiumMajor(userAgent), webViewProviderIsLocked())
     }
 
     /** Length in bytes, or -1 when the provider declines to say. */
     private fun documentLength(uri: Uri): Long = runCatching {
         contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length }
     }.getOrNull()?.takeIf { it >= 0 } ?: -1L
-
-    /**
-     * "bytes=start-end" resolved against a known total. Null means serve the whole
-     * thing: an unparseable header, an unsatisfiable one, or a provider that would
-     * not give us a length to range against.
-     */
-    private fun parseRange(header: String, total: Long): Pair<Long, Long>? {
-        if (total <= 0) return null
-        // Only the first range of a set; pdf.js never asks for more than one
-        val spec = header.substringAfter("bytes=", "").substringBefore(',').trim()
-        if (spec.isEmpty()) return null
-        val start = spec.substringBefore('-').trim().toLongOrNull() ?: return null
-        val end = spec.substringAfter('-').trim().toLongOrNull() ?: (total - 1)
-        if (start < 0 || start > end || start >= total) return null
-        return start to minOf(end, total - 1)
-    }
 
     /** Exactly [start, end], seeking to the offset rather than reading up to it. */
     private fun slice(uri: Uri, start: Long, end: Long): InputStream {
@@ -1723,32 +1546,6 @@ class ViewerActivity : AppCompatActivity() {
         runCatching { stream.channel.position(start) }
             .onFailure { runCatching { stream.skip(start) } }
         return LimitedInputStream(stream, end - start + 1, pfd)
-    }
-
-    /** Stops at [remaining] bytes, and closes the descriptor along with the stream. */
-    private class LimitedInputStream(
-        private val source: InputStream,
-        private var remaining: Long,
-        private val alsoClose: java.io.Closeable
-    ) : InputStream() {
-        override fun read(): Int {
-            if (remaining <= 0) return -1
-            return source.read().also { if (it >= 0) remaining-- }
-        }
-
-        override fun read(b: ByteArray, off: Int, len: Int): Int {
-            if (remaining <= 0) return -1
-            val n = source.read(b, off, minOf(len.toLong(), remaining).toInt())
-            if (n > 0) remaining -= n
-            return n
-        }
-
-        override fun available(): Int = minOf(source.available().toLong(), remaining).toInt()
-
-        override fun close() {
-            runCatching { source.close() }
-            runCatching { alsoClose.close() }
-        }
     }
 
     private fun matchParent() = FrameLayout.LayoutParams(

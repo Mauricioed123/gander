@@ -15,6 +15,15 @@
   now says 1 at the top and the last page at the end, and Go to page says the page it went
   to.
 
+- Gander has an automated test suite. There was none before this, and the way to check a
+  change was to build the app, sideload it and open files by hand. Four hundred tests now
+  run on every push: the Kotlin that decides which renderer a file gets and how
+  it is served to that renderer, and the viewer pages themselves, driven in a real browser
+  against the same fixture documents. The PDF viewer gets most of the attention, because it
+  is the largest thing here and the one whose failures are quietest: a missing character
+  encoding table drops whole paragraphs from a page that otherwise looks complete, and
+  nothing anywhere reports an error. There is a test for that now.
+
 ## 1.17 (2026-09-13)
 
 - A PDF whose images are JPEG 2000 shows them. Since pdf.js 4 the JPEG 2000 and JBIG2

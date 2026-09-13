@@ -14,6 +14,10 @@ __pycache__/
 keystore/
 dist/
 
+# Test scratch
+.pytest_cache/
+.venv/
+tests/viewer/out/
 # Intermediates from scripts/screenshots/record_demo.py (mp4 + extracted frames)
 docs/screenshots/demo-build/
 
