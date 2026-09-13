@@ -193,9 +193,6 @@ def test_the_patch_lands_exactly_on_the_page_beneath_it(viewer, page):
     # this one does: 693 px of page in 1600 px of viewport, which leaves it
     # starting 449 px down. A fixed distance lands in the surround above the
     # page, and the view never reaches the page at all.
-    #
-    # Two drags rather than one diagonal, because that vertical travel is now
-    # long enough to dominate and take the sideways half with it. See pan().
     top = page.evaluate(
         "() => document.querySelector('#pages .pg').getBoundingClientRect().top")
     pan(page, 150, 0)

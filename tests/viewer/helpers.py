@@ -98,8 +98,9 @@ def set_page_scale(page, factor):
     """
     Pinch, the way the WebView's compositor does it.
 
-    Chromium clamps this to the page's own maximum, so the scale that actually
-    took effect is read back rather than assumed: asking for 4 gives 3 here.
+    Chromium clamps this to a maximum that differs by platform, so the scale that
+    actually took effect is read back rather than assumed: asking for 4 gives 3 on
+    macOS and 4 on Linux.
     """
     page.context.new_cdp_session(page).send(
         "Emulation.setPageScaleFactor", {"pageScaleFactor": factor}
@@ -114,15 +115,16 @@ def pan(page, dx, dy):
     window.scrollTo moves the layout viewport and cannot go sideways here,
     because the document is exactly as wide as that viewport.
 
-    One axis at a time when the distance matters. This is a real touch gesture,
-    so Chromium's scroll recogniser locks it to whichever of the two distances
-    dominates and throws the other away: pan(150, 250) moves only downwards and
-    pan(400, 150) only sideways, while pan(300, 300) moves both. A caller that
-    wants to travel a long way diagonally has to ask for it as two drags.
+    A mouse-sourced gesture, not a touch one. Headless Chromium on Linux, which is
+    where CI runs, drops a synthesised touch gesture without any error and the view
+    never moves; a mouse-sourced one pans the pinched viewport by the same CSS px on
+    Linux and macOS alike. Unlike a touch drag it does not lock to one axis, so
+    pan(200, 250) moves both ways at once. The page cannot tell the difference:
+    it follows visualViewport scroll events, whatever produced them.
     """
     page.context.new_cdp_session(page).send("Input.synthesizeScrollGesture", {
         "x": 120, "y": 200, "xDistance": -dx, "yDistance": -dy,
-        "gestureSourceType": "touch",
+        "gestureSourceType": "mouse",
     })
     page.wait_for_timeout(500)
 
