@@ -17,22 +17,17 @@ jobs:
   # the Android job, not after it: neither needs the other's output.
   viewer:
     runs-on: ubuntu-latest
+    # The image scripts/test-viewer-visual.sh uses, so the reference screenshots
+    # are compared under the Chromium and the fonts they were made with rather
+    # than whatever the runner image carries this month. The browser is in it.
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.62.0-noble
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-          cache-dependency-path: tests/viewer/requirements.txt
-
       - name: Install
         run: pip install -r tests/viewer/requirements.txt
-
-      # --with-deps pulls the system libraries headless Chromium needs, which
-      # the runner image does not carry.
-      - name: Install Chromium
-        run: python -m playwright install --with-deps chromium
 
       # Including the reference screenshots, which only run on Linux: text
       # rasterises differently on macOS, so this is the one place they mean
