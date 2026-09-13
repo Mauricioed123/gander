@@ -6,7 +6,8 @@
   page is kept against what the file contains rather than its name or where it came from,
   so it is the same page whether the file is opened from Recents, a folder, a file manager
   or a chat app, and it stays with a file that is renamed or moved. A document left on its
-  last page opens at the beginning again. The zoom is not kept.
+  last page opens at the beginning again. The zoom is not kept, and the page never leaves
+  the phone, not even when you move to a new one.
 
 - The page readout was wrong on a PDF whose pages are shorter than half the screen, which on
   an upright phone means most landscape documents and every slide deck. It said 2 at the

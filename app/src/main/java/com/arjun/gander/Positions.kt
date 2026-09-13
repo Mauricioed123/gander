@@ -3,7 +3,8 @@ package com.arjun.gander
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import androidx.core.content.edit
+import android.util.AtomicFile
+import java.io.File
 import java.security.MessageDigest
 
 /**
@@ -19,12 +20,20 @@ import java.security.MessageDigest
  * Two copies of one file therefore share a page, which is the right answer, and a file
  * saved again with changes in it starts from the top, which is a defensible one.
  *
- * What is stored is the page and when it was left there, the second only so the oldest
- * entry can be dropped once there are [MAX] of them.
+ * Held in the no-backup folder, which is why this is a file of its own and not a
+ * preferences file: Android decides where those go, and it is not there. That folder is
+ * the one part of an app's storage the backup framework always leaves out, cloud backup and
+ * phone-to-phone transfer alike, whatever the manifest asks for. The manifest alone would
+ * only be half of that. allowBackup="false" closes the cloud backup, but from Android 12 a
+ * transfer to a new phone can still carry everything else, preferences included. Where
+ * somebody was in a book stays on the phone they were reading it on.
+ *
+ * One line per document: the key, the page, and when it was left there, the last only so
+ * the oldest entry can be dropped once there are [MAX] of them.
  */
 object Positions {
 
-    private const val PREFS = "positions"
+    private const val FILE_NAME = "positions"
 
     /** More documents than anybody has on the go at once, and a few kilobytes at most. */
     private const val MAX = 100
@@ -38,6 +47,8 @@ object Positions {
      * document that has grown is a different document.
      */
     private const val HEAD_BYTES = 64 * 1024
+
+    private class Entry(val key: String, val page: Int, val time: Long)
 
     /**
      * What the document at [uri] is remembered by, or null when it cannot be read.
@@ -63,7 +74,7 @@ object Positions {
 
     /** The page to open the document under [key] at, or 0 for the top. */
     fun page(context: Context, key: String): Int =
-        prefs(context).getString(key, null)?.substringBefore(' ')?.toIntOrNull() ?: 0
+        load(context).firstOrNull { it.key == key }?.page ?: 0
 
     /**
      * Remember that the document under [key] was left at [page] of [total].
@@ -72,21 +83,36 @@ object Positions {
      * anyway. So is the last, and that one is a decision rather than a saving: a document
      * read to the end that reopens on its final page looks broken, and somebody who has
      * finished it is more likely to be starting again than looking for the back cover.
+     *
+     * The whole file is written again each time, through AtomicFile, so a process that dies
+     * part-way through a write leaves the last good copy rather than half of a new one.
      */
     fun save(context: Context, key: String, page: Int, total: Int) {
-        val prefs = prefs(context)
-        prefs.edit {
-            if (page in 2 until total) putString(key, "$page ${System.currentTimeMillis()}")
-            else remove(key)
-        }
-        val all = prefs.all
-        if (all.size <= MAX) return
-        val oldest = all.entries
-            .sortedBy { (it.value as? String)?.substringAfter(' ')?.toLongOrNull() ?: 0L }
-            .take(all.size - MAX)
-        prefs.edit { oldest.forEach { remove(it.key) } }
+        val all = load(context)
+        val others = all.filter { it.key != key }
+        val keep = page in 2 until total
+        // Nothing stored for this document and nothing to store now: leave the file alone.
+        if (!keep && others.size == all.size) return
+        val entries = if (keep) others + Entry(key, page, System.currentTimeMillis()) else others
+        val text = entries.sortedByDescending { it.time }.take(MAX)
+            .joinToString("") { "${it.key} ${it.page} ${it.time}\n" }
+        val file = file(context)
+        val out = runCatching { file.startWrite() }.getOrNull() ?: return
+        runCatching {
+            out.write(text.toByteArray())
+            file.finishWrite(out)
+        }.onFailure { file.failWrite(out) }
     }
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private fun file(context: Context) = AtomicFile(File(context.noBackupFilesDir, FILE_NAME))
+
+    private fun load(context: Context): List<Entry> = runCatching {
+        String(file(context).readFully()).lines().mapNotNull { line ->
+            val parts = line.split(' ')
+            val page = parts.getOrNull(1)?.toIntOrNull()
+            val time = parts.getOrNull(2)?.toLongOrNull()
+            if (parts.size == 3 && page != null && time != null) Entry(parts[0], page, time)
+            else null
+        }
+    }.getOrDefault(emptyList())
 }
