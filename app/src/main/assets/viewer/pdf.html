@@ -2511,12 +2511,39 @@ function report() {
 var lastPageSent = 0;
 
 function reportPage() {
-  if (!searchPort || !doc || doc.numPages < 2 || !slots.length) return;
+  /* Not before PAGE_PITCH is set, which is when the boxes take the document's own shape
+     and a reopened document is moved to its page. Before that the answer is page 1 of a
+     column of placeholders, and a document closed in that moment would be saved there. */
+  if (!searchPort || !doc || doc.numPages < 2 || !slots.length || !PAGE_PITCH) return;
   var vv = window.visualViewport;
   /* Zero height happens once, between the port arriving and the first layout. There is
      no support fallback below this: visualViewport has existed since Chromium 61 and
      this file refuses to run below 125. */
   if (!vv || !vv.height) return;
+  /* A page bringIntoView() put on screen is named until the reader moves; see there. */
+  if (askedFor && Math.abs(vv.pageTop - askedFor.top) > 1) askedFor = null;
+  var n = askedFor ? askedFor.n : pageOnScreen(vv);
+  if (n === lastPageSent) return;
+  lastPageSent = n;
+  searchPort.postMessage("page " + n + " " + doc.numPages);
+}
+
+/*
+ * The page under the middle of the screen, counting from 1, except at the two ends.
+ *
+ * At an end the middle is the wrong thing to ask about. A page shorter than half the
+ * screen is never under it while that page is the first or the last thing showing, so on
+ * an upright phone a landscape document or a slide deck read 2 as it opened and could
+ * never read its last page. Measured in Chromium at 980 by 1600 on twelve A4 landscape
+ * pages: 2 at the top, 11 at the end. Scrolled to an end, the reader is on the page at
+ * that end whatever its shape. A pixel of slack both ways, since pageTop is fractional
+ * while pinched.
+ */
+function pageOnScreen(vv) {
+  if (vv.pageTop <= 1) return 1;
+  if (vv.pageTop + vv.height >= document.documentElement.scrollHeight - 1) {
+    return slots.length;
+  }
   var middle = vv.pageTop + vv.height / 2;
 
   /* Binary search rather than a walk: nine reads of an already laid out box on a
@@ -2533,9 +2560,33 @@ function reportPage() {
       hi = mid - 1;
     }
   }
-  if (at + 1 === lastPageSent) return;
-  lastPageSent = at + 1;
-  searchPort.postMessage("page " + lastPageSent + " " + doc.numPages);
+  return at + 1;
+}
+
+/* The page a jump or a reopen last put on screen and where that left the screen, or null
+   once the reader has moved from there. */
+var askedFor = null;
+
+/*
+ * Put a page on screen where the readout will name it.
+ *
+ * At the top of the screen, since a jump means "start here", unless the page is too short
+ * for the middle of the screen to fall on it from there, and then in the middle. The
+ * readout names the page under the middle, so a short page put at the top read as the one
+ * after it: Go to page 5 on a slide deck said 6. For a reopened document that would be
+ * worse than a wrong number, because what the readout says is what gets saved, and the
+ * document would move one page further on at every open.
+ *
+ * Near either end there may be nowhere to scroll a page to that puts it under the middle.
+ * Ask for the second-last slide and the last one is on screen beside it, at the bottom of
+ * the document, which pageOnScreen() calls the last page. So the page asked for is kept
+ * along with where it left the screen, and named until the reader moves.
+ */
+function bringIntoView(slot) {
+  var vv = window.visualViewport;
+  var shortPage = !!vv && slot.box.getBoundingClientRect().height <= vv.height / 2;
+  slot.box.scrollIntoView({ block: shortPage ? "center" : "start" });
+  askedFor = vv ? { n: slot.n, top: vv.pageTop } : null;
 }
 
 /* One measurement per frame, however many events arrive in it. */
@@ -2615,7 +2666,8 @@ function onCommand(msg) {
   } else if (verb === "g") {
     /*
      * Go to a page. The same three moves stepTo makes for a search hit, with the page
-     * put at the top rather than centred, because a jump means "start here".
+     * put where bringIntoView() puts it: at the top wherever it is tall enough, because
+     * a jump means "start here", rather than centred like a hit.
      *
      * Instant, and that is not an oversight. scrollIntoView's smooth behaviour would
      * walk the look-ahead band over every page between here and there, and a jump from
@@ -2630,7 +2682,7 @@ function onCommand(msg) {
     var n = Math.floor(Number(msg.slice(1)));
     if (!doc || !slots.length || !(n >= 1 && n <= slots.length)) return;
     var target = slots[n - 1];
-    target.box.scrollIntoView({ block: "start" });
+    bringIntoView(target);
     want(target);
     pump();
     reportPage();
@@ -3025,7 +3077,22 @@ if (!vwPdfBlocked) {
       PAGE_PITCH = PAGE_WIDTH * (unscaled.height / unscaled.width) +
         (parseFloat(getComputedStyle(document.documentElement)
           .getPropertyValue("--pg-gap")) || 8);
-      return draw(slots[0]);
+
+      /*
+       * A reopened document goes straight to the page it was left at, issue #25, and
+       * that page is the first one drawn. Opening at the top and then jumping would
+       * spend the wait behind the rendering card drawing page 1 for nobody.
+       *
+       * Kotlin sends a page only when it has one, and it is checked against the
+       * document here rather than trusted, the same as a "g" command is.
+       */
+      var first = slots[0];
+      var resumeAt = Math.floor(Number(vwParams.get("resume")));
+      if (resumeAt >= 2 && resumeAt <= slots.length) {
+        first = slots[resumeAt - 1];
+        bringIntoView(first);
+      }
+      return draw(first);
     })
     .then(function () {
       vwStatusDone();

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- A PDF reopens at the page it was left on (thanks @Rochey, who asked for this in #25). The
+  page is kept against what the file contains rather than its name or where it came from,
+  so it is the same page whether the file is opened from Recents, a folder, a file manager
+  or a chat app, and it stays with a file that is renamed or moved. A document left on its
+  last page opens at the beginning again. The zoom is not kept, and the page never leaves
+  the phone, not even when you move to a new one.
+
+- The page readout was wrong on a PDF whose pages are shorter than half the screen, which on
+  an upright phone means most landscape documents and every slide deck. It said 2 at the
+  top, one more than Go to page had just been asked for, and never reached the last page. It
+  now says 1 at the top and the last page at the end, and Go to page says the page it went
+  to.
+
+## 1.17 (2026-09-13)
+
 - A PDF whose images are JPEG 2000 shows them. Since pdf.js 4 the JPEG 2000 and JBIG2
   decoders have lived in WebAssembly rather than in the bundle, fetched at the moment a
   page meets an image needing one, and Gander shipped neither binary and never told
@@ -15,6 +30,12 @@
   JBIG2 and CCITT fax in one module, and CCITT is what a scanner or a fax reaches for
   most of the time, so a black and white scan had been arriving as an empty frame since
   the version of pdf.js that moved them out of the bundle. Nobody had reported that one.
+
+- OpenDocument spreadsheets shared without a filename open instead of being refused. Gander
+  has offered to open `.ods` since 1.7 and lists it everywhere it lists formats, but it
+  recognised one by its extension only. A file shared straight from a mail client or a chat
+  app often arrives with a content type and no name on it, and those were being shown the
+  "cannot open this" card by the very app that had just offered to open them.
 
 - The home screen's menu has Rate and Share above About Gander. Rate opens Gander's page
   in the Play Store and only appears on a copy Play installed, since Play takes ratings

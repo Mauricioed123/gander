@@ -446,6 +446,9 @@ class ViewerActivity : AppCompatActivity() {
     private var pageAt = 0
     private var pageTotal = 0
 
+    /** What this PDF's page is saved under; see [Positions]. Null for every other format. */
+    private var positionKey: String? = null
+
     /**
      * True while the find box is up. The page readout stands down for it: two counters
      * on one screen, the lower of them behind the keyboard, is not information.
@@ -1401,10 +1404,17 @@ class ViewerActivity : AppCompatActivity() {
         // leaves a port to send anything down.
         val night = if (kind == FileKind.PDF && Settings.night(this)) 1 else 0
         loadedNight = night == 1
+        // The page a PDF was left at goes the same way, for the same two reasons and one
+        // more: a document that opened at the top and then jumped would spend its opening
+        // drawing a page nobody asked to see. Issue #25.
+        positionKey =
+            if (kind == FileKind.PDF) Positions.keyFor(contentResolver, uri, total) else null
+        val resumeAt = positionKey?.let { Positions.page(this, it) } ?: 0
         web.loadUrl(
             "https://$ASSET_HOST/assets/viewer/${kind.page}" +
                 "?name=${Uri.encode(name)}&ext=${Uri.encode(ext)}&ranged=$ranged" +
                 "&night=$night" +
+                (if (resumeAt > 1) "&resume=$resumeAt" else "") +
                 pdfjsFloorParamsFor(kind, web.settings.userAgentString)
         )
     }
@@ -1421,6 +1431,8 @@ class ViewerActivity : AppCompatActivity() {
         // it can neither be asked anything nor answer. The activity restarts to get a
         // working one, which is where a new channel comes from.
         closeSearchBar()
+        // Kept before it is forgotten, so Reload comes back to this page rather than the top.
+        savePosition()
         pageAt = 0
         pageTotal = 0
         goToPageItem?.isVisible = false
@@ -1540,7 +1552,25 @@ class ViewerActivity : AppCompatActivity() {
 
     override fun onStop() {
         player?.pause()
+        savePosition()
         super.onStop()
+    }
+
+    /**
+     * Keeps the page a PDF is on for the next time it is opened. See [Positions].
+     *
+     * On stop, rather than every time the readout changes, since a fling across three
+     * hundred pages would otherwise be three hundred writes of a number of which only the
+     * last matters. Stop arrives for Back, Home, a switch to another app and the screen
+     * going off alike, and Android does not reclaim the process for memory before it.
+     *
+     * Nothing until the page has reported, so a document closed before it finished
+     * opening keeps the page it had from last time.
+     */
+    private fun savePosition() {
+        val key = positionKey ?: return
+        if (pageAt < 1 || pageTotal < 2) return
+        Positions.save(this, key, pageAt, pageTotal)
     }
 
     override fun onDestroy() {
