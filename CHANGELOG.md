@@ -15,6 +15,15 @@
   now says 1 at the top and the last page at the end, and Go to page says the page it went
   to.
 
+- Gander has an automated test suite. There was none before this, and the way to check a
+  change was to build the app, sideload it and open files by hand. Four hundred tests now
+  run on every push: the Kotlin that decides which renderer a file gets and how
+  it is served to that renderer, and the viewer pages themselves, driven in a real browser
+  against the same fixture documents. The PDF viewer gets most of the attention, because it
+  is the largest thing here and the one whose failures are quietest: a missing character
+  encoding table drops whole paragraphs from a page that otherwise looks complete, and
+  nothing anywhere reports an error. There is a test for that now.
+
 ## 1.17 (2026-09-13)
 
 - A PDF whose images are JPEG 2000 shows them. Since pdf.js 4 the JPEG 2000 and JBIG2
@@ -124,19 +133,6 @@
   to the file, and the setting is remembered.
   (thanks @MaxKash-06, who asked for this)
 
-- Gander has an automated test suite. There was none before this, and the way to check a
-  change was to build the app, sideload it and open files by hand. Four hundred tests now
-  run on every push: the Kotlin that decides which renderer a file gets and how
-  it is served to that renderer, and the viewer pages themselves, driven in a real browser
-  against the same fixture documents. The PDF viewer gets most of the attention, because it
-  is the largest thing here and the one whose failures are quietest: a missing character
-  encoding table drops whole paragraphs from a page that otherwise looks complete, and
-  nothing anywhere reports an error. There is a test for that now.
-- OpenDocument spreadsheets shared without a filename open instead of being refused. Gander
-  has offered to open `.ods` since 1.7 and lists it everywhere it lists formats, but it
-  recognised one by its extension only. A file shared straight from a mail client or a chat
-  app often arrives with a content type and no name on it, and those were being shown the
-  "cannot open this" card by the very app that had just offered to open them.
 - Zoomed-in PDFs are sharp. A page was drawn once at a fixed size, and pinching in
   magnified that picture rather than drawing a better one, so anything taken past about
   twice its fitted size went soft. That is why a tube map or a site plan was unreadable at
