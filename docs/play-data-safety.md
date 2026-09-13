@@ -103,6 +103,7 @@ and performance, device or other IDs): **not declared.** None of it is touched.
 | What | Where | Notes |
 | --- | --- | --- |
 | Recents: file name, content URI, timestamp, max 25 | `SharedPreferences` (`Recents.kt`) | Filtered at read time against the URIs still holding a persisted read grant |
+| Reading positions: page number and timestamp per PDF, max 100 | `SharedPreferences` (`Positions.kt`) | Keyed by a SHA-256 of the file's length and first 64 KiB, so no file name or URI is stored. First and last pages are not kept |
 | Folder grants | Held by the system, not by the app (`MainActivity.kt`) | Released on long-press |
 | Thumbnails, about 192 px | `cacheDir/thumbs/*.png` (`Thumbs.kt`) | From photos, a video's first frame, or a PDF's first page |
 | Shared-text temp file | `cacheDir/shared-text.txt` (`ViewerActivity.kt`) | Overwritten on the next text share |

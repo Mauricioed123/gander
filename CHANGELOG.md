@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- A PDF reopens at the page it was left on (thanks @Rochey, who asked for this in #25). The
+  page is kept against what the file contains rather than its name or where it came from,
+  so it is the same page whether the file is opened from Recents, a folder, a file manager
+  or a chat app, and it stays with a file that is renamed or moved. A document left on its
+  last page opens at the beginning again. The zoom is not kept.
+
+- The page readout was wrong on a PDF whose pages are shorter than half the screen, which on
+  an upright phone means most landscape documents and every slide deck. It said 2 at the
+  top, one more than Go to page had just been asked for, and never reached the last page. It
+  now says 1 at the top and the last page at the end, and Go to page says the page it went
+  to.
+
 ## 1.17 (2026-09-13)
 
 - A PDF whose images are JPEG 2000 shows them. Since pdf.js 4 the JPEG 2000 and JBIG2
