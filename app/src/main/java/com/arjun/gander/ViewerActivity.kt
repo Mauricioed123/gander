@@ -1510,24 +1510,27 @@ class ViewerActivity : AppCompatActivity() {
 
     /**
      * What the two sources say about the engine, handed to [chromiumMajor] to
-     * be read. Wrapped because getCurrentWebViewPackage talks to the package
-     * manager and a provider in a bad state can throw.
+     * be read. Only the package lookup is wrapped, because getCurrentWebViewPackage
+     * talks to the package manager and a provider in a bad state can throw, and it
+     * is only made once the user agent has failed to answer.
      */
-    private fun webViewChromiumMajor(userAgent: String?): Int? = runCatching {
-        chromiumMajor(
-            userAgent,
-            WebViewCompat.getCurrentWebViewPackage(this)?.versionName
-        )
-    }.getOrNull()
+    private fun webViewChromiumMajor(userAgent: String?): Int? = chromiumMajor(userAgent) {
+        runCatching { WebViewCompat.getCurrentWebViewPackage(this)?.versionName }.getOrNull()
+    }
 
     /** Whether the WebView about to render cannot be swapped for a different one. */
     private fun webViewProviderIsLocked(): Boolean = runCatching {
         WebViewCompat.getCurrentWebViewPackage(this)?.packageName in LOCKED_WEBVIEW_PACKAGES
     }.getOrDefault(false)
 
-    /** The engine's own answers, resolved before [pdfjsFloorParams] reads them. */
-    private fun pdfjsFloorParamsFor(kind: FileKind, userAgent: String?): String =
-        pdfjsFloorParams(kind, webViewChromiumMajor(userAgent), webViewProviderIsLocked())
+    /**
+     * The engine's own answers, resolved before [pdfjsFloorParams] reads them, and
+     * only for a PDF: no other page needs them, so opening anything else asks nothing.
+     */
+    private fun pdfjsFloorParamsFor(kind: FileKind, userAgent: String?): String {
+        if (kind != FileKind.PDF) return ""
+        return pdfjsFloorParams(kind, webViewChromiumMajor(userAgent), webViewProviderIsLocked())
+    }
 
     /** Length in bytes, or -1 when the provider declines to say. */
     private fun documentLength(uri: Uri): Long = runCatching {

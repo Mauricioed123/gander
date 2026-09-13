@@ -59,22 +59,24 @@ internal val LOCKED_WEBVIEW_PACKAGES = setOf("com.huawei.webview")
  *
  * The user agent is asked first, because its Chrome/ token is the engine version
  * whatever the provider calls its package, and a vendor scheme like Huawei's
- * "15.0.4.326" says nothing about the engine. [packageVersionName] is the
+ * "15.0.4.326" says nothing about the engine. [packageVersionName] gives the
  * provider package's own versionName, kept as a fallback for an engine whose
- * user agent carries no Chrome/ token at all.
+ * user agent carries no Chrome/ token at all. It is a function so the package is
+ * only asked once the user agent has failed to answer: that lookup can throw, and
+ * a throw must not cost a version the user agent already gave.
  *
  * Null when neither source answers, or when both are too low to be a Chromium
  * version. A null is treated as new enough unless the provider is locked: refusing
  * PDFs on a WebView that works would be the worse mistake, and pdf.html's nomodule
  * fallback still covers the oldest engines a null could hide.
  */
-internal fun chromiumMajor(userAgent: String?, packageVersionName: String?): Int? {
+internal fun chromiumMajor(userAgent: String?, packageVersionName: () -> String?): Int? {
     val fromUa = userAgent
         ?.let { CHROME_TOKEN.find(it) }
         ?.groupValues?.get(1)
         ?.toIntOrNull()
         ?.takeIf { it >= PLAUSIBLE_CHROMIUM_MAJOR }
-    return fromUa ?: packageVersionName
+    return fromUa ?: packageVersionName()
         ?.substringBefore('.')
         ?.toIntOrNull()
         ?.takeIf { it >= PLAUSIBLE_CHROMIUM_MAJOR }

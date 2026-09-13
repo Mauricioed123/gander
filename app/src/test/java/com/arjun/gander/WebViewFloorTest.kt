@@ -34,8 +34,8 @@ class WebViewFloorTest {
 
     @Test
     fun theUserAgentIsReadFirst() {
-        assertThat(chromiumMajor(UA_MODERN, null)).isEqualTo(138)
-        assertThat(chromiumMajor(UA_OLD, null)).isEqualTo(110)
+        assertThat(chromiumMajor(UA_MODERN) { null }).isEqualTo(138)
+        assertThat(chromiumMajor(UA_OLD) { null }).isEqualTo(110)
     }
 
     /**
@@ -45,15 +45,28 @@ class WebViewFloorTest {
      */
     @Test
     fun theUserAgentWinsOverAVendorPackageNumber() {
-        assertThat(chromiumMajor(UA_MODERN, "15.0.4.326")).isEqualTo(138)
-        assertThat(chromiumMajor(UA_OLD, "15.0.4.326")).isEqualTo(110)
+        assertThat(chromiumMajor(UA_MODERN) { "15.0.4.326" }).isEqualTo(138)
+        assertThat(chromiumMajor(UA_OLD) { "15.0.4.326" }).isEqualTo(110)
     }
 
     /** The package is the fallback when the user agent names no engine. */
     @Test
     fun thePackageVersionAnswersWhenTheUserAgentDoesNot() {
-        assertThat(chromiumMajor(UA_NO_TOKEN, "138.0.7204.179")).isEqualTo(138)
-        assertThat(chromiumMajor(null, "125.0.6422.165")).isEqualTo(125)
+        assertThat(chromiumMajor(UA_NO_TOKEN) { "138.0.7204.179" }).isEqualTo(138)
+        assertThat(chromiumMajor(null) { "125.0.6422.165" }).isEqualTo(125)
+    }
+
+    /**
+     * The package is only asked once the user agent has failed to answer. That
+     * lookup can throw on a provider in a bad state, and a throw must not cost a
+     * version the user agent already gave: an engine too old for pdf.js would be
+     * sent the renderer instead of the card saying why it cannot show the file.
+     */
+    @Test
+    fun thePackageIsNotAskedOnceTheUserAgentHasAnswered() {
+        var asked = false
+        assertThat(chromiumMajor(UA_OLD) { asked = true; "124.0.6367.0" }).isEqualTo(110)
+        assertThat(asked).isFalse()
     }
 
     /**
@@ -63,19 +76,19 @@ class WebViewFloorTest {
      */
     @Test
     fun aNumberTooLowToBeChromiumIsNotAVersion() {
-        assertThat(chromiumMajor(null, "15.0.4.326")).isNull()
-        assertThat(chromiumMajor(null, "1.0")).isNull()
-        assertThat(chromiumMajor("Mozilla/5.0 Chrome/15.0.874.106", null)).isNull()
+        assertThat(chromiumMajor(null) { "15.0.4.326" }).isNull()
+        assertThat(chromiumMajor(null) { "1.0" }).isNull()
+        assertThat(chromiumMajor("Mozilla/5.0 Chrome/15.0.874.106") { null }).isNull()
         // and exactly at the floor it is
-        assertThat(chromiumMajor(null, "30.0.0.0")).isEqualTo(30)
+        assertThat(chromiumMajor(null) { "30.0.0.0" }).isEqualTo(30)
     }
 
     @Test
     fun nothingReadableGivesNull() {
-        assertThat(chromiumMajor(null, null)).isNull()
-        assertThat(chromiumMajor(UA_NO_TOKEN, null)).isNull()
-        assertThat(chromiumMajor("", "")).isNull()
-        assertThat(chromiumMajor(UA_NO_TOKEN, "not-a-version")).isNull()
+        assertThat(chromiumMajor(null) { null }).isNull()
+        assertThat(chromiumMajor(UA_NO_TOKEN) { null }).isNull()
+        assertThat(chromiumMajor("") { "" }).isNull()
+        assertThat(chromiumMajor(UA_NO_TOKEN) { "not-a-version" }).isNull()
     }
 
     // ---------------------------------------------------------------
