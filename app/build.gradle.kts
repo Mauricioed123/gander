@@ -82,18 +82,22 @@ android {
     }
 
     lint {
-        // Zero errors today and 39 warnings, frozen into the baseline below so
-        // that a new one fails the build while the existing ones stay visible
-        // in the report rather than blocking every change until they are all
-        // fixed. Several are accessibility warnings, which is the category
-        // Play's pre-launch report reads.
+        // Warnings are frozen into the baseline below, so that a new one fails the
+        // build while the existing ones stay visible in the report rather than
+        // blocking every change until they are all fixed. Some are accessibility
+        // warnings, which is the category Play's pre-launch report reads, and
+        // frozen is not fixed: they are worth coming back to.
         //
-        // Two of the frozen 39 are accessibility warnings. Frozen is not
-        // fixed, and they are worth coming back to.
+        // The three "newer version available" checks are off because they cannot
+        // be baselined. Lint matches a baseline entry by its exact message, and
+        // theirs name whatever upstream published last, so a frozen one stops
+        // matching the day a dependency releases and turns the build red with no
+        // change here at all.
         //
         // Regenerate after fixing some: delete app/lint-baseline.xml, run
         // ./gradlew lintDebug (it fails once, on purpose, having written a new
         // baseline), and read the diff before committing it.
+        disable += setOf("GradleDependency", "AndroidGradlePluginVersion", "NewerVersionAvailable")
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
         // A lint failure should stop CI, not be buried in a report nobody opens
