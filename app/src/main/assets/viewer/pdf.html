@@ -142,7 +142,7 @@
      * so a 357-page document costs one write rather than one per page, and a page
      * that has been drawn overrides it inline with its own. The fallback is A4
      * portrait and applies only between the boxes existing and page 1 being
-     * measured, which is spent behind the "Rendering document" card.
+     * measured, which is over before anything has been drawn.
      *
      * On the box rather than the canvas now. The canvas fills the box, so a released
      * page whose canvas is 0x0 still stands at its full height and nothing moves.
@@ -482,7 +482,7 @@
     </filter>
   </defs></svg>
 </div>
-<div id="vw-status" class="vw-status">Rendering document…</div>
+<div id="vw-status" class="vw-status vw-wait">Rendering document…</div>
 <div id="pages"></div>
 <script src="app.js"></script>
 <script>
@@ -3081,7 +3081,7 @@ if (!vwPdfBlocked) {
       /*
        * A reopened document goes straight to the page it was left at, issue #25, and
        * that page is the first one drawn. Opening at the top and then jumping would
-       * spend the wait behind the rendering card drawing page 1 for nobody.
+       * spend the opening wait drawing page 1 for nobody.
        *
        * Kotlin sends a page only when it has one, and it is checked against the
        * document here rather than trusted, the same as a "g" command is.

@@ -15,6 +15,10 @@
   now says 1 at the top and the last page at the end, and Go to page says the page it went
   to.
 
+- Opening a document no longer flashes a loading card for a split second. The card now waits
+  0.7 seconds before it appears, so a file that opens quickly goes straight to its content
+  and only a slow one shows it. Errors and the password prompt still appear straight away.
+
 - Gander has an automated test suite. There was none before this, and the way to check a
   change was to build the app, sideload it and open files by hand. Four hundred tests now
   run on every push: the Kotlin that decides which renderer a file gets and how

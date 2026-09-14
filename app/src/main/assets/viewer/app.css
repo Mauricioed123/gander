@@ -124,6 +124,40 @@ body {
   box-shadow: 0 1px 4px var(--vw-shadow);
 }
 
+/*
+ * The card a page opens with, held back before it appears.
+ *
+ * A document that opened quickly used to show the card for a moment and then drop it, which
+ * reads as a flash rather than as progress. Measured on a Nothing Phone 2 over DevTools, from
+ * the card first painting to the card going, cold start included: an ordinary PDF 80 to 330
+ * ms, a Word document 50 to 125, a spreadsheet, a Markdown file or a text file under 50. A
+ * document that arrives inside the hold now goes straight to the screen.
+ *
+ * 700 ms, and the floor under it is pptx.html rather than any renderer. It looks for the
+ * slides every 500 ms, so a deck cannot dismiss its card sooner than that however fast it
+ * rendered, and the deck measured sat between 460 and 490. A hold shorter than the poll shows
+ * the card on every deck for a blink. The largest file measured, a 17 MB PDF read in ranges,
+ * took 585 to 680 ms warm and 880 cold: no card while the app is running, a short one from
+ * a cold start.
+ *
+ * Hidden for the whole duration rather than delayed and then changed: from and to are the
+ * same keyframe, so the card is hidden throughout and afterwards is whatever .vw-status says,
+ * with no fill mode or zero duration to depend on. visibility rather than opacity, so a card
+ * that has not appeared is not read out either.
+ *
+ * On a class of the markup's own and not on .vw-status. Everything a script puts in the card
+ * writes className afresh, which drops this: an error, the password prompt, and "Opening
+ * document…" once the password is entered. All three should arrive at once, the first
+ * because it is not progress and the other two because they answer a tap.
+ */
+.vw-wait {
+  animation: vw-wait 700ms;
+}
+
+@keyframes vw-wait {
+  from, to { visibility: hidden; }
+}
+
 .vw-error {
   background: #fdecea;
   background: var(--vw-error);
