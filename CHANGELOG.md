@@ -19,6 +19,9 @@
   0.7 seconds before it appears, so a file that opens quickly goes straight to its content
   and only a slow one shows it. Errors and the password prompt still appear straight away.
 
+- Swiping back from a document no longer shows the file you tapped still highlighted for a
+  moment. Leaving with the back arrow was never affected.
+
 - Gander has an automated test suite. There was none before this, and the way to check a
   change was to build the app, sideload it and open files by hand. Four hundred tests now
   run on every push: the Kotlin that decides which renderer a file gets and how

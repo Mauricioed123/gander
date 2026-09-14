@@ -217,6 +217,25 @@ class MainActivityTest {
         assertThat(started.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION).isNotEqualTo(0)
     }
 
+    /**
+     * A back swipe shows this screen as it was last drawn on its way out, so a tap still
+     * fading when a document opened came back lit. The press has to be gone by the pause;
+     * clearing it on the way back in was tried on a phone and changed nothing.
+     */
+    @Test
+    fun aTapHighlightIsGoneBeforeTheScreenLeaves() {
+        granted("six-pages.pdf", "Alder Court.pdf")
+        val controller = home()
+        val list = controller.list()
+        val rows = (0 until list.childCount).map { list.getChildAt(it) }.filter { it.isClickable }
+        assertThat(rows).isNotEmpty()
+        rows.forEach { it.isPressed = true }
+
+        controller.pause()
+
+        assertThat(rows.filter { it.isPressed }).isEmpty()
+    }
+
     // ---------------------------------------------------------------
     // Layout
     // ---------------------------------------------------------------

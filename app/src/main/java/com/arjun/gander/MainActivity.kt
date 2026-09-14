@@ -253,6 +253,28 @@ class MainActivity : AppCompatActivity() {
         render()
     }
 
+    /**
+     * Takes any tap highlight off before this screen leaves.
+     *
+     * A tap that opens a document starts a ripple, and the viewer covers this screen while it
+     * is still fading. A back swipe then shows this screen as it was last drawn on the way out,
+     * so the row that was tapped came back lit for a moment. The back arrow never showed it,
+     * because it waits for this screen to draw again first.
+     *
+     * Here rather than on the way back in: clearing it in onStart was tried on a phone and
+     * changed nothing, because the swipe shows frames drawn before onStart runs. Both lines are
+     * needed. Unpressing starts the ripple's fade, and the fade is what would be drawn; the jump
+     * ends it on the spot.
+     *
+     * The cost is that a tap which leaves the screen shows its highlight for a frame or two
+     * rather than through the transition. The next screen sliding in is feedback enough.
+     */
+    override fun onPause() {
+        super.onPause()
+        window.decorView.isPressed = false
+        window.decorView.jumpDrawablesToCurrentState()
+    }
+
     private fun openInViewer(uri: Uri) {
         startActivity(
             Intent(this, ViewerActivity::class.java)
