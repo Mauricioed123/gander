@@ -111,6 +111,17 @@ android {
             // assets directory. Without this it gets none of them, and every test
             // that inflates a layout or reads viewer/ fails on a missing resource.
             isIncludeAndroidResources = true
+            // ReleaseHygieneTest reads the changelog, the ProGuard rules and the
+            // store listing straight off the disk, where Gradle cannot see them.
+            // Declared as inputs, an edit to any of them on its own reruns the
+            // tests instead of leaving them up to date and unrun.
+            all { test ->
+                test.inputs.files(
+                    rootProject.file("CHANGELOG.md"),
+                    file("proguard-rules.pro"),
+                    rootProject.fileTree("fastlane/metadata/android") { include("**/*.txt") },
+                ).withPropertyName("releaseMetadata")
+            }
         }
     }
 
