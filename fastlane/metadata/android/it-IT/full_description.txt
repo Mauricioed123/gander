@@ -1,0 +1,52 @@
+Una piccola app che apre praticamente qualsiasi file, interamente sul tuo telefono.
+
+Gander è un visualizzatore offline di documenti per Android. Apri un PDF, un documento Word, un foglio di calcolo o una foto e compare subito, sul dispositivo, senza account, senza registrazione e senza passare dal cloud.
+
+Tutti i formati che probabilmente ti invieranno:
+
+- Documenti PDF, pagina per pagina, con zoom a due dita
+- Documenti Word (.docx)
+- Fogli di calcolo Excel (.xlsx, .xls, .xlsm, .xlsb, .csv, .ods), con schede per le cartelle di lavoro a più fogli
+- Presentazioni PowerPoint (.pptx)
+- Foto: JPG, PNG, WebP, HEIC, BMP, GIF, SVG, AVIF e altri
+- Video: MP4, MKV, WebM, MOV e altri
+- Audio: MP3, M4A, FLAC, WAV, OGG, Opus
+- Markdown, testo semplice e codice sorgente
+
+Privacy integrata nel design, e puoi verificarlo
+
+Gander non richiede alcuna autorizzazione. Non ha l'autorizzazione INTERNET, quindi, per sua natura, non può inviare i tuoi documenti da nessuna parte. Niente pubblicità, niente tracker, niente statistiche d'uso, niente account.
+
+Non devi credermi sulla parola. Guarda le autorizzazioni dell'app in questa pagina: l'elenco è vuoto. Leggi la sezione «Sicurezza dei dati». Oppure leggi il codice. Gander è open source con licenza MIT, e tutto il codice è su https://github.com/mokshablr/gander
+
+Come aprire i tuoi file
+
+Gander apre il file che gli passi: dal selettore di file del sistema, con «Apri con» dal tuo file manager o da un'altra app, oppure da una cartella a cui dai accesso una volta per tutte. Non scansiona il telefono, non lo esplora di sua iniziativa e non chiede mai l'autorizzazione di accesso allo spazio di archiviazione. È una scelta di privacy, non una funzione che manca. I file recenti ricompaiono con le anteprime, e le cartelle a cui hai dato accesso restano a portata di tocco.
+
+Pensato per leggere sul telefono
+
+- Cerca nel documento: in PDF, Word, Excel, PowerPoint, Markdown, testo e codice, spostandoti tra i risultati
+- Seleziona e copia il testo di un PDF, e fallo leggere a uno screen reader
+- Apri i PDF protetti inserendo la password
+- Modalità notte per i PDF: la carta diventa nera e il testo bianco, i colori mantengono la loro tonalità e le foto restano esattamente come sono state stampate
+- Zoom estremo sulle foto grandi con decodifica a riquadri, e rotazione corretta letta dai dati EXIF
+- Condividi il file aperto, salvane una copia o vai alla cartella in cui si trova
+- Design Material 3, tema scuro, visualizzazione da bordo a bordo
+
+Leggero: un solo download per tutti i telefoni
+
+Circa 5 MB, un unico pacchetto che funziona su qualsiasi processore, senza alcuna libreria nativa, su Android 8.0 e versioni successive.
+
+Cosa non è, in tutta onestà
+
+- Gander è un visualizzatore, non un editor
+- I vecchi formati binari .doc e .ppt non sono supportati. Il formato .xls binario sì
+- Le presentazioni PowerPoint complesse vengono mostrate in modo approssimativo, e i grafici dei fogli di calcolo non vengono visualizzati
+- Per visualizzare i PDF serve Android System WebView 125 o successivo, e Gander te lo dice chiaramente se la tua versione è più vecchia
+- L'app in sé è in inglese
+
+Se vuoi un visualizzatore offline di PDF e documenti che mostri semplicemente i tuoi file e non tocchi nient'altro, Gander fa per te.
+
+Open source, licenza MIT: https://github.com/mokshablr/gander
+
+Questa pagina è tradotta dall'inglese. Correzioni, problemi e richieste di funzionalità: gander@arjun.maniyani.com oppure https://github.com/mokshablr/gander/issues

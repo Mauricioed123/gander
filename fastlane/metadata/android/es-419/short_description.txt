@@ -1,0 +1,1 @@
+Lector de PDF, Word y Excel sin internet. Sin anuncios ni rastreadores.
