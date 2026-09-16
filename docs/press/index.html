@@ -566,19 +566,16 @@ CA:7C:15:9F:22:A7:E2:4B</span>
   is not yet bit-for-bit reproducible, and the outstanding work is the vendored minified renderers,
   which is also what currently keeps it off F-Droid. What you can check today is the manifest, the
   signature and the source.</p>
-  <!-- UNVERIFIED, AND NOW VISIBLE. This note is .when-live, and the page flipped to live on
-       2026-09-16, so it will publish on the next upload. Two things in it are not established:
-       (1) that the Play app signing certificate is the same key, and therefore the same SHA-256
-       printed above. Play binds the app signing key when the FIRST release is created, so this
-       is only true if that key is Arjun's own; confirm the digest on Play Console under Test
-       and release > App integrity before uploading this page.
-       (2) that "an install can move between the two without being uninstalled first". That
-       behaviour has never been tested on a device. Delete or soften the sentence unless it has
-       been. -->
+  <!-- The shared app signing key is CONFIRMED (Arjun, 2026-09-16), so the SHA-256 above is the
+       key Play publishes under App integrity. A second clause used to follow, saying an install
+       could therefore move between the two routes without being uninstalled first. That is Play's
+       Update behaviour, which has never been tested on this app, so it was cut. Do not re-add it
+       until someone has installed the GitHub APK under a tester account and watched Play offer
+       Update rather than Installed. -->
   <p class="when-live note">The Play build and the GitHub release carry the same <strong>app signing
-  key</strong>, so an install can move between the two without being uninstalled first. That is the
-  key Google Play publishes under App integrity, and its SHA-256 is the value above. If an APK you
-  pulled off a device shows a different digest, it came from neither route.</p>
+  key</strong>. That is the key Google Play publishes under App integrity, and its SHA-256 is the
+  value above. If an APK you pulled off a device shows a different digest, it came from neither
+  route.</p>
 </section>
 
 <section>
@@ -676,13 +673,10 @@ CA:7C:15:9F:22:A7:E2:4B</span>
 <section>
   <h2 id="contact">Contact</h2>
   <p>Arjun Maniyani &middot; <a href="mailto:gander@arjun.maniyani.com">gander@arjun.maniyani.com</a>
-  &middot; <a href="https://github.com/mokshablr">github.com/mokshablr</a>
-  &middot; <a href="https://www.instagram.com/arjun.maniyani/">@arjun.maniyani on Instagram</a></p>
+  &middot; <a href="https://github.com/mokshablr">github.com/mokshablr</a></p>
   <p><strong>Email is the surest route</strong>, and most press mail is answered the same day,
   including the awkward kind. I am in India (UTC+5:30), so a mail sent from London before lunch,
-  or from New York in the morning, usually has a reply waiting. An Instagram DM reaches me too,
-  though one from an account I do not already follow lands in Requests, so send anything
-  time-critical by email.</p>
+  or from New York in the morning, usually has a reply waiting.</p>
   <p class="note">No embargo on anything here, so nothing needs agreeing before you write.</p>
   <p class="note">If you want a detail that is not on this page, ask rather than guessing:
   everything here is meant to be checkable, and a wrong number helps nobody. If you would rather be
