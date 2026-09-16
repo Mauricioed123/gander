@@ -635,7 +635,7 @@
 
     <p class="eyebrow">Privacy <span class="dot">&middot;</span> Policy</p>
     <h1>What Gander knows about you</h1>
-    <p class="dateline">Last updated 9 August 2026</p>
+    <p class="dateline">Last updated 17 September 2026</p>
 
   </header>
 
@@ -700,10 +700,13 @@
 
     <p>None of this is transmitted anywhere. I never see it.</p>
 
-    <p>Gander also opts out of Android's app backup, so none of the above is copied
-    into your device backup either. It would have been useless if it were: the folder
-    permissions the recents list points at do not survive being restored onto another
-    phone.</p>
+    <p>Gander also opts out of Android's cloud backup, so none of the above reaches
+    Google's servers. Android's direct device-to-device transfer is a separate
+    mechanism that the setting does not cover, so the recents list can travel to a
+    new phone that way; reading positions cannot, because they are held in storage
+    Android never copies. It would be of little use either way: the folder
+    permissions the recents list points at do not survive being restored onto
+    another phone.</p>
   </section>
 
   <section>
