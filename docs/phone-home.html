@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Can an Android app without the INTERNET permission phone home? - Gander</title>
+<meta name="description" content="Two of the three routes people raise really work, and neither is a bug in the app: one is a feature every Android app needs, the other is the OS acting on its behalf.">
+<meta name="theme-color" content="#fcf6eb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f141a" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Arjun Maniyani">
+<link rel="canonical" href="https://arjun.maniyani.com/gander/phone-home.html">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Gander">
+<meta property="og:url" content="https://arjun.maniyani.com/gander/phone-home.html">
+<meta property="og:title" content="Can an Android app without the INTERNET permission phone home?">
+<meta property="og:description" content="Two of the three routes really work, and neither is a bug in the app. Plus the manifest attribute that stopped covering half of what it says at Android 12.">
+<meta property="og:image" content="https://arjun.maniyani.com/gander/social-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Gander: take a gander at any file. An open source Android viewer for PDF, DOCX, XLSX, PPTX, JPG, MP4, MP3 and Markdown. Zero permissions, no ads or trackers, fully offline.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Can an Android app without the INTERNET permission phone home?">
+<meta name="twitter:description" content="One is a myth. Two are real, and neither is a bug: one is a feature every app needs, the other is the OS acting on the app's behalf.">
+<meta name="twitter:image" content="https://arjun.maniyani.com/gander/social-preview.png">
+<meta name="twitter:image:alt" content="Gander: take a gander at any file. Zero permissions, no ads or trackers, fully offline.">
+<!--
+  Served at https://arjun.maniyani.com/gander/phone-home.html. Self-contained on
+  the same reasoning as privacy.html: no webfonts, no analytics, no external
+  request of any kind. A page arguing that an app makes no network request has
+  no business making three of its own before the reader reaches the first
+  paragraph, and someone will check.
+
+  The stylesheet below is copied from privacy.html, which copied it from
+  index.html. All three must stay one site, so a change to any of them is a
+  change to all three.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Can an Android app without the INTERNET permission phone home?",
+  "url": "https://arjun.maniyani.com/gander/phone-home.html",
+  "datePublished": "2026-09-06",
+  "author": {
+    "@type": "Person",
+    "name": "Arjun Maniyani",
+    "url": "https://arjun.maniyani.com/",
+    "sameAs": ["https://github.com/mokshablr"]
+  },
+  "about": {
+    "@type": "SoftwareApplication",
+    "name": "Gander",
+    "operatingSystem": "Android 8.0+",
+    "applicationCategory": "UtilitiesApplication"
+  }
+}
+</script>
+<style>
+  /* Matches docs/index.html exactly; the two pages must stay one site. See
+     that file for why the light ground is shaped the way it is. */
+  :root {
+    --desk-top:  #f5e9da;
+    --desk-bot:  #d2c9bd;
+    --sheet:     transparent;
+    --sheet-shadow: none;
+    /* Light only. Switched off for the two dark selectors further down, so the
+       frozen dark palette keeps its plain top-to-bottom wash. */
+    --glow: radial-gradient(300% 60% at 50% -8%,
+              rgba(252, 246, 236, 1) 0%,
+              rgba(252, 246, 236, 0.92) 20%,
+              rgba(252, 246, 236, 0.55) 40%,
+              rgba(252, 246, 236, 0.18) 64%,
+              rgba(252, 246, 236, 0) 88%);
+    /* Translucent, not a tint: the block lifts by a fixed amount above whatever
+       the ground is doing behind it, the grain carries straight through, and it
+       can never harden into the floating white sheet that got rejected. */
+    --card:      rgba(252, 246, 236, 0.34);
+    --ink:       #1a222c;
+    --ink-soft:  #4d5865;
+    --ink-faint: #686258;
+    --red:       #af2d18;
+    --blue:      #14539f;
+    --green:     #2b6b2f;
+    --rule:      rgba(26, 34, 44, 0.19);
+    --rule-firm: rgba(26, 34, 44, 0.44);
+    --grain:     0.055;
+    --grain-blend: multiply;
+    --logo-shadow: 0 1px 2px rgba(44, 36, 25, 0.24), 0 6px 18px rgba(44, 36, 25, 0.16);
+    --doc-face:      #fcf7ee;
+    --switch-bg:     #f5ecdf;
+    --switch-on-bg:  #1a222c;
+    --switch-on-fg:  #f2eade;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --geo:   Futura, "Century Gothic", "Avenir Next", Avenir, "Trebuchet MS", sans-serif;
+    --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  /* The dark values appear twice on purpose: once for the OS preference and
+     once for an explicit choice from the switcher, because a media query and an
+     attribute selector cannot be combined in plain CSS. Keep the two in step. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --desk-top:  #161d26;
+      --desk-bot:  #0e131a;
+      --sheet:     transparent;
+      --sheet-shadow: none;
+      --card:      #1a222c;
+      --ink:       #e7e1d5;
+      --ink-soft:  #9ba6b2;
+      --ink-faint: #6d7883;
+      --red:       #e2795f;
+      --blue:      #90caf9;
+      --green:     #7fb883;
+      --rule:      rgba(231, 225, 213, 0.16);
+      --rule-firm: rgba(231, 225, 213, 0.30);
+      --grain:     0.05;
+      --grain-blend: screen;
+      --logo-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 3px 12px rgba(0,0,0,0.35);
+      --doc-face:      #ffffff;
+      --switch-bg:     #1a222c;
+      --switch-on-bg:  #e7e1d5;
+      --switch-on-fg:  #0e131a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --desk-top:  #161d26;
+    --desk-bot:  #0e131a;
+    --sheet:     transparent;
+    --sheet-shadow: none;
+    --card:      #1a222c;
+    --ink:       #e7e1d5;
+    --ink-soft:  #9ba6b2;
+    --ink-faint: #6d7883;
+    --red:       #e2795f;
+    --blue:      #90caf9;
+    --green:     #7fb883;
+    --rule:      rgba(231, 225, 213, 0.16);
+    --rule-firm: rgba(231, 225, 213, 0.30);
+    --grain:     0.05;
+    --grain-blend: screen;
+    --logo-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 3px 12px rgba(0,0,0,0.35);
+    --doc-face:      #ffffff;
+    --switch-bg:     #1a222c;
+    --switch-on-bg:  #e7e1d5;
+    --switch-on-fg:  #0e131a;
+  }
+
+  /* The glow is the one thing the two themes do not share, and it is deliberately
+     kept out of the blocks above so those stay exactly as they were. Dark is a
+     plain vertical wash and has to remain one. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --glow: none; }
+  }
+  :root[data-theme="dark"] { --glow: none; }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    /* Belt and braces for viewports narrower than anything testable here.
+       clip, not hidden: it makes no scroll container, so the fixed grain
+       overlay keeps working. */
+    overflow-x: clip;
+    padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 5vw, 2rem) 5rem;
+    /* Two layers, both pinned to the viewport: a wide soft source sitting just
+       off the top edge, over the ramp it falls into. The source is far wider
+       than it is tall on purpose, so the sheet and the margins sit at almost
+       the same brightness at any given height and the ellipse never resolves
+       into a shape you can point at. */
+    background-image: var(--glow),
+                      linear-gradient(to bottom, var(--desk-top), var(--desk-bot));
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: clamp(16.5px, 0.55rem + 0.55vw, 18.5px);
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Paper grain. An inline feTurbulence, so still zero requests. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: var(--grain);
+    mix-blend-mode: var(--grain-blend);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---- the framed document ---- */
+
+  .sheet {
+    position: relative;
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 4.5rem) clamp(1.25rem, 5vw, 4rem) clamp(2.5rem, 6vw, 4rem);
+    background: var(--sheet);
+    box-shadow: var(--sheet-shadow);
+    z-index: 2;
+  }
+
+  /* Two nested hairlines, the social preview's frame. Suppressed on narrow
+     screens, where they would crush the measure. */
+  .sheet::before,
+  .sheet::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+  }
+  .sheet::before { inset: 0;     border: 1px solid var(--rule); }
+  .sheet::after  { inset: 6px;   border: 1px solid var(--rule-firm); }
+
+  @media (max-width: 40rem) {
+    .sheet::before, .sheet::after { display: none; }
+    .sheet { padding-left: 0; padding-right: 0; }
+  }
+
+  @media (min-width: 40.001rem) {
+    .masthead::before { inset: -1.5rem -1rem 0; }
+  }
+
+  /* ---- masthead ---- */
+
+  .masthead {
+    position: relative;
+    margin-bottom: clamp(2rem, 5vw, 3.25rem);
+    padding-bottom: clamp(1.5rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--rule-firm);
+  }
+
+  /* Ruled-paper motif, 36px pitch as in the social preview, fading out. */
+  .masthead::before {
+    content: "";
+    position: absolute;
+    /* Bleeds past the text column on wide screens for a printed-sheet feel.
+       Kept inside the box below 40rem: at a 320px viewport the body padding
+       resolves to exactly 1rem, so a 1rem bleed lands on the viewport edge
+       with nothing to spare. Measured as not overflowing at 500px and up,
+       which is as narrow as headless Chrome will lay out. */
+    inset: -1.5rem 0 0;
+    z-index: -1;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 35px,
+      var(--rule) 35px 36px
+    );
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 82%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 82%);
+  }
+
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .lockup svg {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 9px;
+    box-shadow: var(--logo-shadow);
+  }
+
+  .wordmark {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 1.42rem;
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+
+  .eyebrow {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 0.66rem;
+    letter-spacing: 0.265em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.7rem;
+  }
+
+  .eyebrow .dot { color: var(--red); }
+
+  h1 {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 1.2rem + 3.6vw, 3.3rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    margin: 0 0 0.85rem;
+    text-wrap: balance;
+  }
+
+  .dateline {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  /* ---- the claim ---- */
+
+  .claim {
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.34rem, 0.9rem + 1.7vw, 1.78rem);
+    line-height: 1.28;
+    font-style: italic;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  .claim strong { font-style: normal; font-weight: 600; }
+
+  .lede { font-size: 1.06em; }
+
+  /* ---- verify strip ---- */
+
+  .verify {
+    margin: 2rem 0 2.5rem;
+    padding: 1.35rem 1.5rem 1.4rem;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--red);
+  }
+
+  .verify-label {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 0.9rem;
+  }
+
+  .verify ul { margin: 0; padding: 0; list-style: none; }
+
+  .verify li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.95em;
+    line-height: 1.55;
+  }
+
+  .verify li:last-child { margin-bottom: 0; }
+
+  .verify li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.58em;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--red);
+    border-radius: 2px;
+  }
+
+  /* ---- sections ---- */
+
+  section { margin-top: clamp(2.5rem, 6vw, 3.75rem); }
+
+  h2 {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 1.16rem;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 0 0 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--rule-firm);
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+
+  /* Sized and weighted to read as part of the heading rather than a speck
+     beside it. It was already on the heading's baseline; at a third the height
+     and regular weight it just looked dropped. */
+  h2 .num {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--red);
+    flex: none;
+  }
+
+  p { margin: 0 0 1.1rem; }
+  section > p:last-child, li > p:last-child { margin-bottom: 0; }
+
+  ul.kept { margin: 0 0 1.1rem; padding: 0; list-style: none; }
+
+  ul.kept li {
+    padding: 0.9rem 0 0.95rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  ul.kept li:first-child { border-top: 1px solid var(--rule); }
+
+  ul.kept b {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 0.88em;
+    letter-spacing: 0.005em;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+
+  ul.plain { margin: 0 0 1.1rem; padding-left: 1.15rem; }
+  ul.plain li { margin-bottom: 0.5rem; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.83em;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.08em 0.35em;
+  }
+
+  a {
+    color: var(--ink);
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    transition: color 0.15s ease;
+  }
+  a:hover { color: var(--red); }
+  a:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  strong { font-weight: 600; }
+
+  /* ---- colophon ---- */
+
+  footer {
+    margin-top: clamp(3rem, 7vw, 4.5rem);
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--rule-firm);
+    font-size: 0.85em;
+    color: var(--ink-soft);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: baseline;
+  }
+
+  footer .mit {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---- theme switcher ----
+     TEMPORARY, for comparing the two palettes during review. To remove it:
+     delete this block, the .theme-switch markup, the script at the end of
+     the body, and both :root[data-theme="dark"] rules (the token block and
+     the --glow: none line), then the media query alone drives the theme
+     again exactly as before. */
+
+  .theme-switch {
+    position: fixed;
+    top: 0.9rem;
+    right: 0.9rem;
+    z-index: 10;
+    display: flex;
+    gap: 1px;
+    padding: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule-firm);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+
+  .theme-switch button {
+    font-family: var(--geo);
+    font-weight: 700;
+    font-size: 0.56rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.42rem 0.6rem;
+    border: 0;
+    cursor: pointer;
+    background: var(--switch-bg);
+    color: var(--ink-soft);
+  }
+
+  .theme-switch button:hover { color: var(--ink); }
+
+  /* Tokens rather than root-scoped overrides: a :root[data-theme] prefix
+     outranks [aria-pressed] and was repainting the pressed button's background
+     back to the unpressed tone, leaving near-black text on it in dark. */
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--switch-on-bg);
+    color: var(--switch-on-fg);
+  }
+
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: -2px;
+  }
+
+  /* ---- motion ----
+     Deliberately only the logo and the accent rule. Text is never animated in
+     from opacity 0: this page has to stay legible to a Play reviewer, a crawler
+     and an archiver, and anything that starts invisible is one failed animation
+     away from a blank privacy policy. Decoration can move; the policy cannot. */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lockup svg {
+      animation: settle 0.7s cubic-bezier(0.22, 0.68, 0.3, 1) backwards;
+    }
+    .wordmark {
+      animation: slide 0.7s cubic-bezier(0.22, 0.68, 0.3, 1) 0.08s backwards;
+    }
+    .verify {
+      animation: sweep 0.85s cubic-bezier(0.4, 0, 0.2, 1) 0.25s backwards;
+    }
+  }
+
+  @keyframes settle {
+    from { opacity: 0; transform: translateY(-6px) rotate(-7deg); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  @keyframes slide {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Grows the red rule down the verify block rather than fading the text in. */
+  @keyframes sweep {
+    from { border-left-color: transparent; }
+    to   { border-left-color: var(--red); }
+  }
+
+  /* ---- print: it is a policy, people print these ---- */
+
+  @media print {
+    body {
+      background: #fff;
+      color: #000;
+      font-size: 11pt;
+      padding: 0;
+    }
+    body::before, .masthead::before { display: none; }
+    .sheet::before, .sheet::after { display: none; }
+    .sheet { max-width: none; padding: 0; background: none; box-shadow: none; }
+    .theme-switch { display: none; }
+    :root { --doc-face: #ffffff; }
+    .verify { border: 1px solid #999; border-left-width: 2px; background: none; }
+    a { color: #000; text-decoration: none; }
+    a[href^="http"]::after {
+      content: " (" attr(href) ")";
+      font-family: monospace;
+      font-size: 8.5pt;
+      word-break: break-all;
+    }
+    section, footer { break-inside: avoid; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TEMPORARY review control, see .theme-switch in the stylesheet for removal -->
+<div class="theme-switch" role="group" aria-label="Colour theme">
+  <button type="button" data-set="light">Light</button>
+  <button type="button" data-set="dark">Dark</button>
+  <button type="button" data-set="system">System</button>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+
+    <div class="lockup">
+      <svg viewBox="18 18 72 72" role="img" aria-label="Gander app icon">
+        <rect x="18" y="18" width="72" height="72" rx="16" fill="#F6F1E6"/>
+        <g transform="translate(-3.5,-1)">
+          <path fill="#262A2E" d="M64.5,50 L64.5,34 C64.5,29.6 63.9,26.6 62.4,25.1 C61.2,23.9 59.6,23.25 57.9,23.3 C55.1,23.4 52.9,25.3 52.3,28.0 L46.6,29.8 C45.9,30.05 45.9,30.75 46.6,30.95 L52.4,32.3 C53.1,34.1 54.7,35.3 56.6,35.6 C57.7,35.8 58.2,36.7 58.2,38.4 L58.2,50 Z"/>
+          <g transform="rotate(-22,56.4,31.9)">
+            <path fill="#FDFBF5" d="M52.9,31.9 a3.5,2.4 0 1,0 7.0,0 a3.5,2.4 0 1,0 -7.0,0 Z"/>
+          </g>
+          <path fill="#F6F1E6" d="M55.6,26.2 a1.0,1.0 0 1,0 0.01,0 Z"/>
+        </g>
+        <g transform="rotate(-16,43,61)">
+          <path fill="var(--doc-face)" d="M33,44 h14 l9,9 v22 q0,3 -3,3 h-20 q-3,0 -3,-3 v-28 q0,-3 3,-3 Z"/>
+          <path fill="#C9CFD6" d="M47,44 l9,9 h-9 Z"/>
+          <path fill="#1565C0" d="M35,52 h9 v9 h-9 Z"/>
+          <path fill="#D9DEE5" d="M35,65 h16 v3 h-16 Z"/>
+          <path fill="#D9DEE5" d="M35,71 h12 v3 h-12 Z"/>
+        </g>
+        <g transform="rotate(14,65,61)">
+          <path fill="var(--doc-face)" d="M55,44 h14 l9,9 v22 q0,3 -3,3 h-20 q-3,0 -3,-3 v-28 q0,-3 3,-3 Z"/>
+          <path fill="#C9CFD6" d="M69,44 l9,9 h-9 Z"/>
+          <path fill="#2E7D32" d="M57,52 h9 v9 h-9 Z"/>
+          <path fill="#D9DEE5" d="M57,65 h16 v3 h-16 Z"/>
+          <path fill="#D9DEE5" d="M57,71 h12 v3 h-12 Z"/>
+        </g>
+        <g transform="rotate(-2,54,54)">
+          <path fill="var(--doc-face)" d="M44,37 h14 l9,9 v22 q0,3 -3,3 h-20 q-3,0 -3,-3 v-28 q0,-3 3,-3 Z"/>
+          <path fill="#C9CFD6" d="M58,37 l9,9 h-9 Z"/>
+          <path fill="#D32F2F" d="M46,45 h9 v9 h-9 Z"/>
+          <path fill="#D9DEE5" d="M46,58 h16 v3 h-16 Z"/>
+          <path fill="#D9DEE5" d="M46,64 h12 v3 h-12 Z"/>
+        </g>
+      </svg>
+      <span class="wordmark">Gander</span>
+    </div>
+
+    <p class="eyebrow">Explainer <span class="dot">&middot;</span> Permissions</p>
+    <h1>Can an app without the INTERNET permission phone home?</h1>
+    <p class="dateline">6 September 2026</p>
+
+  </header>
+
+  <p class="claim"><strong>Yes, by two of the three.</strong> Neither of the two is a
+  hole in the app, which is what makes them interesting: one is a feature every app
+  on your phone needs, and the other is the operating system doing it for you.</p>
+
+  <p class="lede">Gander is an Android file viewer that requests no permissions at
+  all. The usual reply to that is some version of "the permission list is theatre, it
+  can still get data out". It is a fair question with a real answer, so here is what
+  the permission gates, the three routes around it people raise, and what one app
+  does about each.</p>
+
+  <p>Two things here are worth checking in your own app before you finish reading.
+  One is a line of WebView code most tutorials get wrong. The other is a manifest
+  attribute that quietly stopped covering half of what it says.</p>
+
+  <section>
+    <h2><span class="num">01</span> What the permission actually stops</h2>
+
+    <p><code>INTERNET</code> is granted at install time, with no prompt, and it is not
+    enforced where people assume. It is enforced at the moment a socket is created,
+    underneath anything you can write in Java.</p>
+
+    <p>The mechanism changed once, and the answer did not. Before Android 10 an app
+    holding the permission was put into a supplementary group, <code>AID_INET</code>,
+    and an out-of-tree kernel patch called paranoid networking refused an internet
+    socket to any UID outside it. From Android 10 that patch is gone, removed in the
+    4.19 kernel, and an eBPF filter on cgroup socket creation does the same job: only
+    UIDs carrying <code>android.permission.INTERNET</code> may open an INET or INET6
+    socket. Gander runs on Android 8 and up, so both are live somewhere in its
+    range.</p>
+
+    <p>It is not a check inside the Java API that can be reflected around, and not a
+    policy an app can ask to have relaxed at runtime. OkHttp, Retrofit,
+    <code>HttpURLConnection</code>, a raw <code>Socket</code>, the NDK: all of them
+    end at the same <code>socket()</code> call, and without the permission that call
+    fails. Nothing you write inside the app gets past it. The rest of this page is
+    about the fact that it only covers sockets the app opens itself.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> Route one: "but it has a WebView"</h2>
+
+    <p>This is the first thing people raise, and it is the one that does not work.
+    Gander renders PDF, Word, Excel and PowerPoint inside a WebView, and shipping a
+    browser engine sounds like it should come with a browser's network access.</p>
+
+    <p>It does not. WebView's network requests are made under the app's own UID, so
+    they meet exactly the same refusal as everything in section 01, and Android's own
+    WebView documentation is blunt about it: an app that wants to load web content
+    has to request the <code>INTERNET</code> permission like anything else. Without
+    it, a WebView cannot load a remote URL. On Android 8 and up the renderer is a
+    separate sandboxed process, but it runs in the app's context and has no network
+    of its own, so that changes nothing.</p>
+
+    <p>Gander closes it a second time anyway, because a document is untrusted input
+    and PDFs can carry links, embedded JavaScript and references to remote resources.
+    Every request the WebView makes is answered locally:
+    <code>shouldInterceptRequest</code> serves the viewer libraries out of app assets
+    and streams the document from the content URI, and
+    <code>shouldOverrideUrlLoading</code> refuses every host except
+    <code>appassets.androidplatform.net</code>.</p>
+
+    <p>That second one is where a lot of apps go wrong. The usual implementation of
+    <code>shouldOverrideUrlLoading</code> hands the URL to the system browser with
+    <code>startActivity</code>. Write it that way and a hostile document has a
+    one-tap path to route two below, taken by your app, in the user's name. Gander
+    returns true and drops it. There is also no <code>addJavascriptInterface</code>,
+    the call that reflects a Java object into script running on the document; the
+    only channel into a page carries three integers.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Route two: ask an app that does have it</h2>
+
+    <p>This one is real. It needs no permission, and the platform cannot close it.</p>
+
+    <p>Any app can call <code>startActivity</code> with <code>ACTION_VIEW</code> and
+    an <code>https://</code> URL, which opens the user's browser. Put your payload in
+    the query string and the browser makes the request for you. Same with
+    <code>ACTION_SEND</code> into a mail client. No permission is checked, because
+    the app is not making a network request. It is asking another app to.</p>
+
+    <p>It cannot be closed, because it is the same mechanism as "open this link", which
+    every app needs. What limits it is that it is loud: it brings another app to the
+    foreground in front of you, and since Android 10 an app in the background
+    generally cannot start an activity at all. So it cannot be done while you are not
+    looking, which makes it close to useless as a covert channel.</p>
+
+    <p>Gander starts an activity in three places, each behind a tap you made: Share,
+    "show in folder", and the links on the About screen. There is no path from a
+    document to a browser, which is what the <code>shouldOverrideUrlLoading</code>
+    line in section 02 exists to guarantee.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> Route three: let Android carry it for you</h2>
+
+    <p>This one is real, it is silent, it is on by default, and it is the one that
+    caught this app.</p>
+
+    <p>Android Auto Backup copies an app's private storage into the user's Google
+    Drive. The app requests nothing and calls nothing: the system does it, on one
+    manifest attribute that defaults to on. No permission is consulted, because the
+    app is not the party making the request, and none of it shows up in the
+    permission list a user can see.</p>
+
+    <p>Gander shipped with that attribute on through version 1.9. What went into the
+    backup was the recents list: the names of files you had opened, the system
+    references to them, and when. Not to me. To the user's own Drive, and since Android
+    9, on a phone with a lock screen set, encrypted with a key derived from it that
+    Google does not hold. Even so, "nothing leaves the device" was not true while it
+    was on, and that is the one claim this app is built around.</p>
+
+    <p>It has been off since 1.10, in commit <code>2c3076d</code>. The fix cost nothing,
+    which is the annoying part: recents are Storage Access Framework content URIs,
+    filtered when read against the grants the app still holds, and those grants do
+    not survive a restore onto another phone. A restored list rendered empty however
+    faithfully it had been copied. It was putting file names into a Drive backup in
+    exchange for nothing at all.</p>
+
+    <p>There is a second half to that attribute which almost nothing tells you about,
+    and it is the most useful thing on this page. <strong>From Android 12,
+    <code>android:allowBackup</code> is deprecated and governs cloud backup
+    only.</strong> Device-to-device transfer, the copy made when you set up a new
+    phone from your old one, moved to a separate file:
+    <code>android:dataExtractionRules</code>. When that file is absent, the transfer
+    is fully enabled for everything outside the cache and no-backup directories.
+    Declaring it is not the default, so an app that set <code>allowBackup="false"</code>
+    years ago and considered the matter closed is now covering half of what it thinks
+    it covers. Android's lint says so against the exact manifest line, which is how
+    this one surfaced.</p>
+
+    <p>I would rather explain why that is not a phone-home route than let it sound
+    like one. A device transfer is started by you, runs between two phones you own,
+    and reaches no third party: there is no server and no developer at the far end.
+    The recents list arrives dead there too, for the same reason it arrives dead from
+    a restore. It is on this page because of its shape rather than its size. The
+    attribute everyone reaches for still closes exactly what it closed the year it
+    was written, and the other half quietly became a file you have to know exists.</p>
+
+    <p>This is the route worth taking seriously in other apps. It is invisible in the
+    permission list, invisible in the app's own code, and enabled unless someone
+    turned it off on purpose.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> The ones that come up next</h2>
+
+    <ul class="kept">
+      <li>
+        <b>DNS</b>
+        An app reaches the system resolver over a local socket, not an internet one, so the
+        check in section 01 does not apply to the app itself, and a hostname is a
+        place you can hide data. It is a documented covert channel: see <i>An
+        Autonomic and Permissionless Android Covert Channel</i> by Block, Narain and
+        Noubir. Whether a current resolver refuses a UID with no
+        <code>INTERNET</code> permission, I could not establish; see the end of this
+        page. What is certain either way is that the channel needs deliberate code,
+        because you have to build the hostname and resolve it, and there is no such
+        call in Gander.
+      </li>
+      <li>
+        <b>Shelling out to ping or curl</b>
+        A child process inherits the app's UID and its groups, so it meets the same
+        refusal the app would. This one is a myth.
+      </li>
+      <li>
+        <b>Another app's ContentProvider fetching on your behalf</b>
+        Real in principle, and it needs a provider on the device willing to do it. Gander
+        queries providers only through the Storage Access Framework and
+        DocumentsContract, for files you granted it.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> So what is the permission worth?</h2>
+
+    <p>Not a sandbox, and anyone telling you a missing <code>INTERNET</code> permission
+    proves an app cannot exfiltrate anything is overselling it. What it removes is the
+    silent, general purpose route, leaving only routes that are loud, deliberate, or
+    the platform's rather than the app's. An app with the permission can talk to
+    anyone, at any time, in the background, and you would never know. An app without
+    it has to do something you could catch.</p>
+
+    <p>Which is why the useful question is never "does it hold the permission" but
+    "can I check, without trusting the developer".</p>
+
+    <div class="verify">
+      <p class="verify-label">Checking it yourself</p>
+      <ul>
+        <li>Read the permission list from the OS rather than the store listing:
+        Settings &gt; Apps &gt; the app &gt; Permissions, or
+        <code>aapt dump permissions app.apk</code> on a downloaded APK.</li>
+        <li>Check whether Auto Backup is on. It is
+        <code>android:allowBackup</code> in the manifest, it defaults to true, and
+        almost nothing written for users mentions it. <strong>If you ship an app:
+        that attribute stopped covering device transfers at Android 12</strong>, so
+        check for an <code>android:dataExtractionRules</code> file next to it.</li>
+
+        <li><strong>If you ship a WebView:</strong> look at what your
+        <code>shouldOverrideUrlLoading</code> does with a URL it does not recognise.
+        If it hands it to <code>startActivity</code>, every document you render can
+        reach the network through the user's browser, using route two, over your
+        app's name. That is the single most common version of this bug.</li>
+        <li>For Gander: the About screen asks Android for the app's own permission
+        list at runtime and prints whatever comes back, so what you read there is the
+        OS's answer and not mine.</li>
+        <li>The build fails if a dependency adds a permission that has not been signed off,
+        on the bundle uploaded to Play as well as the APK, since those are separate
+        builds. Media3 contributes <code>ACCESS_NETWORK_STATE</code>; it is stripped
+        in the manifest, and that check is what keeps it stripped across a dependency
+        bump.</li>
+        <li>All of it is MIT licensed at
+        <a href="https://github.com/mokshablr/gander">github.com/mokshablr/gander</a>,
+        including everything asserted on this page.</li>
+      </ul>
+    </div>
+
+    <p>Two things on this page are genuinely open, and I would rather be corrected than
+    agreed with. The first is DNS: I could not establish from the public source
+    whether a current Android resolver refuses a UID that holds no
+    <code>INTERNET</code> permission, and someone reading this almost certainly
+    knows. The second is whether there is a fourth route at all. Three is a
+    suspiciously round number, and the two real ones here are both cases of the app
+    getting something else to do the work, which does not feel like a category that
+    only has two members in it.</p>
+
+    <p>If you have one, the comments are the right place, or
+    <a href="https://github.com/mokshablr/gander/issues">github.com/mokshablr/gander/issues</a>
+    if it is specific to the app.</p>
+  </section>
+
+  <footer>
+    <span class="mit">MIT licensed</span>
+    <!-- index.html, not "./": a bare directory link only resolves to the page
+         when a server applies its DirectoryIndex, and shows a file listing when
+         the page is opened straight off disk. -->
+    <span><a href="index.html">About Gander</a></span>
+    <span><a href="privacy.html">Privacy policy</a></span>
+    <span><a href="https://github.com/mokshablr/gander">GitHub</a></span>
+  </footer>
+
+</div>
+
+<!-- TEMPORARY, with the switcher. No storage of any kind: the choice lasts
+     until the page is reloaded, on the same reasoning as privacy.html. -->
+<script>
+(function () {
+  var root = document.documentElement;
+  var buttons = document.querySelectorAll(".theme-switch button");
+
+  function apply(choice) {
+    if (choice === "light" || choice === "dark") root.setAttribute("data-theme", choice);
+    else { root.removeAttribute("data-theme"); choice = "system"; }
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute("aria-pressed", buttons[i].dataset.set === choice);
+    }
+  }
+
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", function () { apply(this.dataset.set); });
+  }
+
+  apply("system");
+})();
+</script>
+
+</body>
+</html>
