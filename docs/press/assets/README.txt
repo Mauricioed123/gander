@@ -32,5 +32,5 @@ Rights
 
 Contact
   Arjun Maniyani, gander@arjun.maniyani.com
-  Also @mokshablr on Mastodon and @arjun.maniyani on Instagram.
+  Also @arjun.maniyani on Instagram.
   Email is the surest route, and most press mail is answered the same day.
