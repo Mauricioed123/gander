@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en" data-play="live">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Gander press kit</title>
+<meta name="description" content="Press kit for Gander, an offline Android file viewer that requests no permissions and does not hold INTERNET. Facts, assets, usage rights and the signing fingerprint.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://arjun.maniyani.com/gander/press/">
+
+<!-- RE-STAMPED for 1.17 on 16 September 2026. The places that carry a version or a figure:
+     the JSON-LD softwareVersion and dateModified, the "Current release" line under the title,
+     the exfiltration table caption, the facts table (version, versionCode, release date, byte
+     size, release count, reach), the "all of this is in" note, the two Gander-1.17.apk filenames
+     and the release SHA-256 in the verification commands, and the Background paragraph. Reach is
+     stamped "read 16 Sep 2026" and appears twice. When the next release ships, walk that list.
+
+     Still stamped 29 Aug 2026: the competitor table under #permissions. Those are other people's
+     live Play listings and they move, so re-read all nine before any later upload. -->
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Gander">
+<meta property="og:locale" content="en_GB">
+<meta property="og:title" content="Gander press kit">
+<meta property="og:description" content="An Android file viewer whose permissions page is empty. Facts, assets, usage rights and the signing fingerprint.">
+<meta property="og:url" content="https://arjun.maniyani.com/gander/press/">
+<meta property="og:image" content="https://arjun.maniyani.com/gander/social-preview.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Gander: take a gander at any file.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gander press kit">
+<meta name="twitter:description" content="An Android file viewer whose permissions page is empty. Facts, assets, usage rights and the signing fingerprint.">
+<meta name="twitter:image" content="https://arjun.maniyani.com/gander/social-preview.png">
+<meta name="twitter:image:alt" content="Gander: take a gander at any file.">
+
+<style>
+/* Palette and type lifted from docs/index.html so the two pages are one site.
+   Dark values appear twice on purpose: once for the OS preference and once for
+   an explicit choice, because a media query and an attribute selector cannot be
+   combined in plain CSS. Keep the two in step.
+
+   The [data-theme] rules are inert here: this page ships no theme switcher. They
+   exist so that pasting a block from docs/index.html does not silently lose the
+   explicit-choice half. Do not "clean them up" without adding a switcher.
+
+   No external requests, same as the app. That is also the reason every AI
+   crawler can read this page: none of them execute JavaScript. Keep it that way. */
+:root{
+  --paper:#f5e9da; --sheet:#fcf7ee; --card:rgba(252,246,236,.5);
+  --ink:#1a222c; --ink-soft:#4d5865; --ink-faint:#686258;
+  --red:#af2d18; --blue:#14539f; --green:#2b6b2f;
+  --rule:rgba(26,34,44,.19); --rule-firm:rgba(26,34,44,.44);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --geo:Futura,"Century Gothic","Avenir Next",Avenir,"Trebuchet MS",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0e131a; --sheet:#1a222c; --card:rgba(255,255,255,.04);
+  --ink:#e7e1d5; --ink-soft:#9ba6b2; --ink-faint:#8a94a0;
+  --red:#e2795f; --blue:#90caf9; --green:#7fb883;
+  --rule:rgba(231,225,213,.18); --rule-firm:rgba(231,225,213,.36);
+}}
+:root[data-theme="dark"]{
+  --paper:#0e131a; --sheet:#1a222c; --card:rgba(255,255,255,.04);
+  --ink:#e7e1d5; --ink-soft:#9ba6b2; --ink-faint:#8a94a0;
+  --red:#e2795f; --blue:#90caf9; --green:#7fb883;
+  --rule:rgba(231,225,213,.18); --rule-firm:rgba(231,225,213,.36);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+.wrap{max-width:940px;margin:0 auto;padding:clamp(24px,4vw,56px) clamp(18px,4vw,40px) 90px}
+a{color:var(--blue);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+header.mast{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:8px}
+.kicker{font-family:var(--geo);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--red);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--geo);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.04;
+  letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+.stand{font-size:19px;line-height:1.5;color:var(--ink-soft);max-width:58ch;margin:0}
+.updated{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);margin:16px 0 0}
+
+nav.toc{font-family:var(--geo);font-size:13.5px;padding:16px 0 2px;border-bottom:1px solid var(--rule)}
+nav.toc ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;max-width:none}
+nav.toc li{margin:0}
+
+section{padding:30px 0;border-top:1px solid var(--rule)}
+section:first-of-type{border-top:0}
+h2{font-family:var(--geo);font-weight:700;font-size:23px;letter-spacing:-.012em;
+  margin:0 0 12px;text-wrap:balance;scroll-margin-top:14px}
+h3{font-family:var(--geo);font-weight:600;font-size:15.5px;letter-spacing:.01em;margin:22px 0 6px}
+p{margin:0 0 13px;max-width:68ch}
+ul,ol{margin:0 0 13px;padding-left:20px;max-width:68ch}
+li{margin-bottom:6px}
+
+.claim{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--red);
+  padding:20px 22px;margin:20px 0}
+.claim p:last-child{margin-bottom:0}
+.claim strong{font-weight:650}
+
+.boiler{background:var(--card);border:1px solid var(--rule);padding:18px 20px;margin:12px 0 18px;
+  max-width:none}
+
+.scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--rule)}
+.scroll:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-family:var(--geo);min-width:460px}
+caption{text-align:left;font-family:var(--geo);font-size:12.5px;color:var(--ink-faint);
+  padding:10px 14px;border-bottom:1px solid var(--rule);max-width:68ch}
+th{text-align:left;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:600;padding:10px 14px;border-bottom:1.5px solid var(--rule-firm);
+  white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td,tr:last-child th{border-bottom:0}
+th.k{text-align:left;font-size:14.5px;letter-spacing:0;text-transform:none;color:var(--ink);
+  font-weight:600;white-space:nowrap;border-bottom:1px solid var(--rule);vertical-align:top;
+  padding:9px 14px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono);font-size:13px}
+tr.us td,tr.us th.k{background:rgba(175,45,24,.07)}
+tr.us th.k{color:var(--red)}
+
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:18px;
+  margin:18px 0;padding:0;list-style:none;max-width:none}
+.shots li{margin:0}
+.shots img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:3px;
+  background:var(--sheet)}
+.shots .cap{font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.4}
+.shots .cap .dim{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);display:block}
+
+figure{margin:18px 0}
+figure img{display:block;width:100%;max-width:300px;height:auto;border:1px solid var(--rule);border-radius:3px}
+figcaption{font-size:14px;color:var(--ink-soft);margin-top:10px;max-width:62ch}
+
+.brandrow{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin:16px 0 6px}
+.brandrow img{border:1px solid var(--rule);border-radius:3px;background:var(--sheet)}
+.brandrow .ico{width:88px;height:88px}
+.brandrow .wm{width:210px;height:auto;padding:12px 14px}
+
+blockquote{margin:0 0 20px;padding:2px 0 2px 18px;border-left:2px solid var(--red);max-width:64ch}
+blockquote p{font-style:italic;margin:0 0 7px}
+blockquote cite{font-style:normal;font-family:var(--geo);font-size:13px;color:var(--ink-faint);
+  letter-spacing:.02em}
+
+code,.mono{font-family:var(--mono);font-size:.87em;background:rgba(26,34,44,.06);
+  padding:.1em .36em;border-radius:2px;word-break:break-word}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) code,
+  :root:not([data-theme="light"]) .mono{background:rgba(255,255,255,.07)}}
+:root[data-theme="dark"] code,:root[data-theme="dark"] .mono{background:rgba(255,255,255,.07)}
+
+/* Fingerprints and terminal output. Broken into fixed groups by hand rather than by
+   word-break, because break-all splits mid-byte-pair and makes eyeball comparison
+   useless. Never insert &shy; or <wbr> in here: they survive a copy-paste and
+   silently corrupt the value, which defeats the whole section. */
+.fp{display:block;font-family:var(--mono);font-size:12.5px;line-height:1.7;
+  background:var(--card);border:1px solid var(--rule);padding:14px 16px;margin:12px 0;
+  overflow-x:auto;white-space:pre;tab-size:2}
+.fp.wrapme{white-space:pre-wrap;word-break:break-all}
+.fp .dim{color:var(--ink-faint)}
+
+.note{font-size:14.5px;color:var(--ink-soft);max-width:66ch}
+.asof{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);white-space:nowrap}
+footer{margin-top:40px;padding-top:18px;border-top:2px solid var(--ink);
+  font-family:var(--geo);font-size:13.5px;color:var(--ink-faint)}
+.print-only{display:none}
+
+/* ---- the launch switch ----
+   Both Play states ship in the markup; data-play on <html> decides which one is
+   shown.
+
+   ALREADY FLIPPED to "live", 2026-09-16, and deliberately ahead of the listing,
+   matching what docs/index.html has done since 2026-09-12. Arjun's call. The
+   Play row in the facts table therefore points at a listing that still 404s,
+   and the "not live yet, the APK on GitHub is the current route" row is hidden.
+   That is intentional. Do not set this back to "pending". Line 2 here matches
+   what is on cPanel so that re-uploading this file cannot silently revert it.
+
+   Edit that tag by hand. A find-and-replace for data-play="live" would rewrite
+   the selectors below as well, which switches nothing and quietly hides both
+   states at once. */
+html[data-play="pending"] .when-live{display:none}
+html[data-play="live"] .when-pending{display:none}
+
+@media print{
+  body{background:#fff;color:#000;font-size:11pt}
+  .wrap{padding:0;max-width:none}
+  nav.toc{display:none}
+  .print-only{display:block}
+  a,a:visited{text-decoration:underline}
+  a[href]::after{content:" (" attr(href) ")";font-size:9pt;word-break:break-all}
+  a[href^="#"]::after{content:""}
+  .scroll{overflow:visible!important;border:1px solid #999}
+  table{min-width:0!important}
+  .fp,blockquote,.claim,.boiler{border:1px solid #999;page-break-inside:avoid}
+  .fp{white-space:pre-wrap!important}
+  tr,img,figure,.shots li{page-break-inside:avoid}
+  p,h2,h3{orphans:3;widows:3}
+  h2,h3{page-break-after:avoid}
+  .shots{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"AboutPage","@id":"https://arjun.maniyani.com/gander/press/#page",
+  "name":"Gander press kit","inLanguage":"en","dateModified":"2026-09-16",
+  "mainEntity":{"@id":"https://arjun.maniyani.com/gander/#app"},
+  "author":{"@id":"https://arjun.maniyani.com/#me"}},
+ {"@type":"Person","@id":"https://arjun.maniyani.com/#me","name":"Arjun Maniyani",
+  "url":"https://arjun.maniyani.com/","email":"gander@arjun.maniyani.com",
+  "sameAs":["https://github.com/mokshablr"]},
+ {"@type":"MobileApplication","@id":"https://arjun.maniyani.com/gander/#app",
+  "name":"Gander","applicationCategory":"UtilitiesApplication",
+  "operatingSystem":"Android 8.0+","permissions":"None",
+  "softwareVersion":"1.17","fileSize":"5MB","isAccessibleForFree":true,
+  "license":"https://opensource.org/licenses/MIT",
+  "codeRepository":"https://github.com/mokshablr/gander",
+  "url":"https://arjun.maniyani.com/gander/",
+  "author":{"@id":"https://arjun.maniyani.com/#me"},
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},
+ {"@type":"ImageObject",
+  "contentUrl":"https://arjun.maniyani.com/gander/press/assets/gander-permissions.png",
+  "license":"https://arjun.maniyani.com/gander/press/#rights",
+  "acquireLicensePage":"https://arjun.maniyani.com/gander/press/#rights",
+  "creditText":"Gander / Arjun Maniyani","copyrightNotice":"© 2026 Arjun Maniyani",
+  "creator":{"@id":"https://arjun.maniyani.com/#me"},
+  "caption":"Android's App info screen for Gander, with the permissions row empty."}
+]}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="kicker">Press kit</p>
+  <h1>Gander</h1>
+  <p class="stand">An Android file viewer that opens PDF, Word, Excel, PowerPoint, photos,
+  video, audio and Markdown, and renders all of it on the device. It requests no Android
+  permissions at all.</p>
+  <p class="updated">Page updated 16 September 2026 &middot; Current release 1.17, 14 September 2026
+  &middot; Nothing here is under embargo</p>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#story">The story</a></li>
+    <li><a href="#objection">But it can still leak, surely</a></li>
+    <li><a href="#permissions">Permissions compared</a></li>
+    <li><a href="#boilerplate">Boilerplate</a></li>
+    <li><a href="#facts">Facts</a></li>
+    <li><a href="#features">What it does</a></li>
+    <li><a href="#assets">Assets</a></li>
+    <li><a href="#rights">Rights</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#verify">Verify it yourself</a></li>
+    <li><a href="#review">Reviewer's guide</a></li>
+    <li><a href="#limits">Honest limits</a></li>
+    <li><a href="#quotes">Quotes</a></li>
+    <li><a href="#background">Background</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<section id="story-s">
+  <h2 id="story">The story, in one test anyone can run</h2>
+  <div class="claim">
+    <p><strong>Open the permissions page of whatever you read PDFs with, then open Gander's.</strong>
+    Android's own App permissions screen for Gander is empty. It requests nothing, and its manifest
+    does not contain <code>INTERNET</code>, so it has no route to send a document anywhere.</p>
+    <p>That is not a privacy policy. It is a missing capability, and it takes about twenty seconds
+    to verify on your own phone without trusting anyone.</p>
+  </div>
+  <p>The absence is enforced rather than intended: the release build fails if any permission reaches
+  the merged manifest, so it cannot drift back in through a dependency. The About screen inside the
+  app asks Android at runtime what the app requests and shows you the answer.</p>
+  <p>It also cannot change its mind later. There is no internet permission through which to load an
+  advertisement, and no billing library that would get past the app's own build gate.</p>
+</section>
+
+<section>
+  <h2 id="objection">&ldquo;But a permission-less app can still leak&rdquo;</h2>
+  <p>It can, and you are right to check. In 2012 Paul Brodeur at Leviathan Security built a
+  proof-of-concept Android app called <em>No Permissions</em> that requested nothing and still
+  exfiltrated data, by reading what was readable without a permission and then <strong>handing a
+  crafted URL to the system browser</strong>, which has the internet permission that the app
+  lacks. It was covered by
+  <a href="https://www.theverge.com/2012/4/13/2943141/android-no-permissions-app-gallery-security-issues">The
+  Verge</a> and others, and it is the correct first question to ask anyone making this claim.</p>
+  <p>Here is what Gander does about each leg of it. All four are checkable in the source.</p>
+  <div class="scroll" role="region" aria-label="How Gander closes the permission-less exfiltration route" tabindex="0"><table>
+    <caption>Verified against 1.17. File and symbol names are given so you can go and look.</caption>
+    <thead><tr><th scope="col">The route</th><th scope="col">What Gander does</th></tr></thead>
+    <tbody>
+      <tr><th scope="row" class="k">Hand a URL to the browser</th>
+        <td>A link inside a document is <strong>dropped, not forwarded</strong>.
+        <code>shouldOverrideUrlLoading</code> in <code>ViewerActivity.kt</code> returns true for
+        any host that is not the internal asset host, and does nothing further with it. There is no
+        path from document content to a browser.</td></tr>
+      <tr><th scope="row" class="k">Open a URL some other way</th>
+        <td>The app opens exactly two URLs ever: the author's site and the source repository. Both
+        are hardcoded string resources, both fire from a tap in the About dialog, and neither takes
+        an argument. <code>openUrl</code> in <code>MainActivity.kt</code> has two call sites.</td></tr>
+      <tr><th scope="row" class="k">Leave a file for another app</th>
+        <td>No storage permission, and nothing is written to shared storage. The only file Gander
+        creates is a temporary copy for the share sheet, inside its own cache directory, and its
+        FileProvider is scoped to that directory alone.</td></tr>
+      <tr><th scope="row" class="k">Enumerate what else is installed</th>
+        <td>The manifest declares no <code>&lt;queries&gt;</code> element, so on Android 11 and
+        newer the package list is not visible to it.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The share sheet is the one route a document can leave by, it is an explicit tap,
+  and it hands the file to whatever the user picks. That is a feature, and it is the only one.</p>
+</section>
+
+<section>
+  <h2 id="permissions">Permission entries, compared</h2>
+  <div class="scroll" role="region" aria-label="Permission entries by app" tabindex="0"><table>
+    <caption>Entries in Google Play's own user-facing <em>App permissions</em> list, which groups
+    some items under &ldquo;Other&rdquo;. Read 29 August 2026 from the US Play Store. These are
+    other people's listings and they change: check any figure against the live page before
+    printing it. The shape is the point rather than the last digit.</caption>
+    <thead><tr>
+      <th scope="col">App</th>
+      <th scope="col" class="n">Entries<br><span class="asof">29 Aug 2026</span></th>
+      <th scope="col">Opens</th>
+    </tr></thead>
+    <tbody>
+      <tr><th scope="row" class="k">Google Docs</th><td class="n">30</td><td>Documents</td></tr>
+      <tr><th scope="row" class="k">WPS Office</th><td class="n">27</td><td>Office suite</td></tr>
+      <tr><th scope="row" class="k">Microsoft Word</th><td class="n">26</td><td>Documents</td></tr>
+      <tr><th scope="row" class="k">Adobe Acrobat Reader</th><td class="n">19</td><td>PDF</td></tr>
+      <tr><th scope="row" class="k">Foxit PDF Editor</th><td class="n">17</td><td>PDF</td></tr>
+      <tr><th scope="row" class="k">Xodo</th><td class="n">11</td><td>PDF</td></tr>
+      <tr><th scope="row" class="k">ReadEra</th><td class="n">8</td><td>Books, PDF</td></tr>
+      <tr><th scope="row" class="k">MuPDF viewer</th><td class="n">2</td><td>PDF</td></tr>
+      <tr><th scope="row" class="k">Secure PDF Viewer (GrapheneOS)</th><td class="n">0</td><td>PDF only</td></tr>
+      <tr class="us"><th scope="row" class="k">Gander</th><td class="n">0</td><td>PDF, Office, images, video, audio, Markdown</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="boilerplate">Boilerplate, copy it verbatim</h2>
+  <p class="note">Written to be pasted without editing and to survive being quoted out of context.
+  No permission needed, no credit line required.</p>
+  <h3>Short, 44 words</h3>
+  <p class="boiler">Gander is a free, open-source file viewer for Android that opens PDF, Word,
+  Excel, PowerPoint, images, video, audio and Markdown entirely on the device. It requests no
+  Android permissions and holds no internet permission, so it has no route to send a document
+  anywhere.</p>
+  <h3>Long, 92 words</h3>
+  <p class="boiler">Gander is a free, open-source file viewer for Android. It opens PDF, Word,
+  Excel, PowerPoint, images, video, audio, Markdown and source code, and renders all of it on the
+  device. Android's App permissions screen for it is empty: it requests no permissions at all, and
+  its manifest does not contain INTERNET, so it is structurally unable to upload a document. There
+  are no ads, trackers, analytics or accounts, and no in-app purchases. It is about 5 MB, runs on
+  Android 8.0 and newer, is MIT licensed, and is written by one person, Arjun Maniyani.</p>
+</section>
+
+<section>
+  <h2 id="facts">The facts</h2>
+  <div class="scroll" role="region" aria-label="Fact sheet" tabindex="0"><table>
+    <caption>Everything here is checkable. Figures carry the date they were read.</caption>
+    <tbody>
+      <tr><th scope="row" class="k">Name</th><td>Gander</td></tr>
+      <tr><th scope="row" class="k">What it is</th><td>An offline file viewer for Android. A viewer, not an editor.</td></tr>
+      <tr><th scope="row" class="k">Current release</th><td>1.17, versionCode 19, released 14 September 2026. <a href="https://github.com/mokshablr/gander/releases">All releases and changelogs</a></td></tr>
+      <tr><th scope="row" class="k">Formats</th><td>PDF; Word (.docx); Excel (.xlsx, .xls, .xlsm, .xlsb, .csv, .ods); PowerPoint (.pptx); JPG, PNG, WebP, HEIC, BMP, GIF, SVG, AVIF; MP4, MKV, WebM, MOV; MP3, M4A, FLAC, WAV, OGG, Opus; Markdown, plain text and source code</td></tr>
+      <tr><th scope="row" class="k">Permissions</th><td>None</td></tr>
+      <tr><th scope="row" class="k">Network</th><td>No <code>INTERNET</code> permission. No ads, trackers, analytics, crash reporting or accounts.</td></tr>
+      <tr><th scope="row" class="k">Price</th><td>Free. No in-app purchases, no subscription.</td></tr>
+      <tr><th scope="row" class="k">Licence</th><td>MIT</td></tr>
+      <tr><th scope="row" class="k">Download size</th><td>5,097,742 bytes for 1.17, so about 5 MB. One build for every processor, no native libraries.</td></tr>
+      <tr><th scope="row" class="k">Requires</th><td>Android 8.0 or newer (minSdk 26). PDF rendering needs Android System WebView 125 or newer, and the app says so plainly if yours is older.</td></tr>
+      <tr><th scope="row" class="k">Developer</th><td>Arjun Maniyani, working alone, in India</td></tr>
+      <tr><th scope="row" class="k">First release</th><td>19 July 2026. Nineteen releases to date.</td></tr>
+      <tr><th scope="row" class="k">Reach</th><td>11,486 APK downloads and 933 GitHub stars <span class="asof">(read 16 Sep 2026)</span></td></tr>
+      <tr><th scope="row" class="k">Source</th><td><a href="https://github.com/mokshablr/gander">github.com/mokshablr/gander</a></td></tr>
+      <tr><th scope="row" class="k">Site</th><td><a href="https://arjun.maniyani.com/gander/">arjun.maniyani.com/gander</a></td></tr>
+      <tr><th scope="row" class="k">Privacy policy</th><td><a href="../privacy.html">arjun.maniyani.com/gander/privacy.html</a></td></tr>
+      <tr class="when-live"><th scope="row" class="k">Google Play</th><td><a href="https://play.google.com/store/apps/details?id=com.arjun.gander">play.google.com/store/apps/details?id=com.arjun.gander</a></td></tr>
+      <tr class="when-pending"><th scope="row" class="k">Google Play</th><td>Not live yet. The APK on GitHub is the current route.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2 id="features">What it does, beyond opening files</h2>
+  <p class="note">Useful if you are writing more than a paragraph. All of this is in 1.17.</p>
+  <ul>
+    <li><strong>Find in document</strong>, inside PDF, Word, Excel, PowerPoint, Markdown, text and
+      code, with match-by-match navigation.</li>
+    <li><strong>Select and copy text in a PDF</strong>, and read one with a screen reader.</li>
+    <li><strong>Night mode for PDFs</strong>: paper goes black and text goes white, colours keep
+      their hue, and photographs are left exactly as they were printed.</li>
+    <li><strong>Password-protected PDFs</strong> open by entering the password.</li>
+    <li><strong>Deep zoom into large photos</strong> with tiled decoding, and correct rotation read
+      from EXIF.</li>
+    <li><strong>Multi-sheet workbooks</strong> with a tab per sheet.</li>
+    <li>Share the open file onward, save a copy, or jump to the folder it sits in.</li>
+    <li>Recent files with real thumbnail previews, and granted folders one tap away.</li>
+    <li>Material 3, dark mode, edge to edge.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="assets">Assets</h2>
+  <p>Everything below is on this page so that a tip form with no attachment field is still enough.
+  Individually linked, and <a href="assets/gander-press-kit.zip">all of it as one ZIP</a>
+  (about 3.5 MB). Usage rights are in <a href="#rights">the next section</a>, and the answer is
+  yes.</p>
+
+  <h3>The permissions screenshot</h3>
+  <figure>
+    <img src="assets/gander-permissions.png" width="720" height="813"
+      alt="Android's App info screen for Gander. The Permissions row is greyed out and reads that no permissions are requested.">
+    <figcaption><strong>Android's own App info screen.</strong> The Permissions row is greyed out
+    because there is nothing behind it to manage. This is the picture the story is about.
+    <a href="assets/gander-permissions.png">PNG, 720&times;813, 19 KB</a>.</figcaption>
+  </figure>
+
+  <h3>Icon and wordmark</h3>
+  <div class="brandrow">
+    <img class="ico" src="assets/gander-icon-512.png" width="512" height="512" alt="The Gander app icon.">
+    <img class="wm" src="assets/gander-wordmark.svg" alt="The Gander wordmark.">
+  </div>
+  <p class="note">
+    Icon: <a href="assets/gander-icon-512.png">PNG, 512&times;512, transparent, 41 KB</a>.<br>
+    Wordmark: <a href="assets/gander-wordmark.svg">SVG</a> &middot;
+    <a href="assets/gander-wordmark-1200.png">PNG, 1200&times;290, transparent</a>.
+    For dark backgrounds: <a href="assets/gander-wordmark-inverse.svg">SVG</a> &middot;
+    <a href="assets/gander-wordmark-1200-inverse.png">PNG</a>. The face is Jost.
+  </p>
+
+  <h3>Screenshots</h3>
+  <p class="note">Clean captures at 1080&times;1920, with no marketing copy over them. The
+  documents in every frame are synthetic, written for these shots; the photograph is
+  <a href="https://commons.wikimedia.org/wiki/File:Quartier_Saint-Sacrement,_Quebec_city,_Canada.jpg">a
+  CC0 aerial by Wilfredor</a>. So there is no third-party rights holder in any of them.</p>
+  <ul class="shots">
+    <li><img src="assets/gander-home.png" width="1080" height="1920" alt="Gander's home screen, listing recent files with thumbnail previews and a button to add a folder.">
+      <span class="cap">Home and recent files<span class="dim">PNG 1080&times;1920, 157 KB</span></span></li>
+    <li><img src="assets/gander-pdf.png" width="1080" height="1920" alt="A PDF condition survey open in Gander, showing body text and a photographic plate.">
+      <span class="cap">A PDF<span class="dim">PNG 1080&times;1920, 518 KB</span></span></li>
+    <li><img src="assets/gander-pdf-night.png" width="1080" height="1920" alt="The same PDF in night mode: the paper is black and the text white, while the photograph stays as printed.">
+      <span class="cap">The same PDF, night mode<span class="dim">PNG 1080&times;1920, 1.5 MB</span></span></li>
+    <li><img src="assets/gander-word.png" width="1080" height="1920" alt="A Word document open in Gander, with headings, body text and a table.">
+      <span class="cap">A Word document<span class="dim">PNG 1080&times;1920, 369 KB</span></span></li>
+    <li><img src="assets/gander-spreadsheet.png" width="1080" height="1920" alt="A multi-sheet Excel workbook open in Gander, with a tab bar across the top.">
+      <span class="cap">A spreadsheet<span class="dim">PNG 1080&times;1920, 340 KB</span></span></li>
+    <li><img src="assets/gander-find-in-document.png" width="1080" height="1920" alt="Find in document open over a PDF, with a search term entered and a match counter.">
+      <span class="cap">Find in document<span class="dim">PNG 1080&times;1920, 537 KB</span></span></li>
+  </ul>
+  <p class="note">Tablet screenshots at 2560&times;1600 and the rest of the store set are in the
+  repository under <code>fastlane/metadata/android/en-US/images/</code>, or ask and they will be
+  sent.</p>
+
+  <h3>Feature graphic</h3>
+  <p class="note"><a href="assets/gander-feature-graphic.jpg">JPG, 1024&times;500, 206 KB</a>. The
+  Play store banner, useful as an article header.</p>
+
+  <h3>Video</h3>
+  <p><strong>A 12-second permissions clip</strong>, 1920&times;1080. One instruction, then the
+  phone: out to the home screen, into Android&rsquo;s Settings, and onto the <em>App info</em> page
+  for Gander. That journey is a single continuous screen recording with no cut anywhere in it,
+  which is the point of the clip: what the page says is Android&rsquo;s account of the app, not
+  ours. The one row that matters is enlarged alongside the phone, from a higher-resolution capture
+  of that same screen rather than redrawn. <strong>It is silent, deliberately</strong>: the cut is
+  built to be read, so it carries its whole argument under your own voiceover or in a muted
+  autoplay. Ask and it will be sent.</p>
+  <p>A <strong>30-second version</strong> that puts the app itself either side of the same walk is
+  the Play listing video, public on
+  <a href="https://www.youtube.com/watch?v=gGjvSlom58U">YouTube</a>. It is silent for the same
+  reason, and it is cut for a store listing rather than for an article, so the 12-second clip is
+  usually the more useful one to drop into a piece.</p>
+  <p><strong>Any Gander footage you shoot yourself is cleared for redistribution</strong>, and you
+  may monetise the video you put it in, including on a monetised channel. You do not need to ask me
+  first.</p>
+  <p class="note"><strong>A walkthrough of the app can be shot on request.</strong> Say what you
+  need and roughly how long, and it will be shot for you.</p>
+</section>
+
+<section>
+  <h2 id="rights">Rights, so you do not have to ask</h2>
+  <p>The <strong>source code</strong> is MIT licensed. That covers the code and nothing else, which
+  is why the rest of this section exists.</p>
+  <p>The <strong>screenshots, the permissions screenshot and the feature graphic</strong> on this
+  page are licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Credit
+  line: <code>Gander / Arjun Maniyani</code>. Crop and scale them freely.</p>
+  <p>The <strong>name &ldquo;Gander&rdquo;, the wordmark and the app icon</strong> are not covered
+  by either of those. They are my marks. You may reproduce them, unaltered and at any size, in
+  reporting about Gander, without asking me and without a credit line. Please do not recolour,
+  redraw or reletter them, do not use them in a way that suggests I endorse your publication or
+  product, and do not adopt them as the identity of software that is not Gander. Anything outside
+  that, ask; the answer is usually yes and it comes the same day.</p>
+  <p class="note">The Google Play badge is Google's, not mine. Take it from
+  <a href="https://play.google.com/intl/en_us/badges/">Google Play's own brand guidelines</a>
+  rather than from this page.</p>
+</section>
+
+<section>
+  <h2 id="how">How it works, for the technical write-up</h2>
+  <p>Every renderer is a JavaScript library vendored into the APK's own assets: pdf.js for PDF,
+  docx-preview for Word, SheetJS for spreadsheets, PPTXjs for slides. They are served to a
+  locked-down WebView through <code>WebViewAssetLoader</code>, which streams the opened document
+  over a virtual <code>https://</code> host that resolves inside the process and never reaches a
+  network stack.</p>
+  <p>Because nothing is ever fetched, the app needs no <code>INTERNET</code> permission. Because
+  files arrive through the system picker, an Open-with intent or a folder granted once, it needs no
+  storage permission either. There is no JavaScript bridge in either direction. The outbound intents
+  in the whole app are the share sheet, &ldquo;show this file's folder&rdquo;, &ldquo;save a
+  copy&rdquo; through the system's create-document picker, the two links in the About dialog, which
+  do open a browser, and, from 1.17, Rate and Share in the home screen's menu. Every one of them
+  fires only when the user presses the thing that fires it.</p>
+  <p class="note">The full list of vendored libraries, their versions and their licences is in
+  <a href="https://github.com/mokshablr/gander/blob/main/docs/VENDORED.md">VENDORED.md</a>. There is
+  a longer piece on the underlying question, <a href="../phone-home.html">can an app without the
+  INTERNET permission phone home</a>, if that is the angle.</p>
+</section>
+
+<section>
+  <h2 id="verify">Verify it yourself</h2>
+  <p>Do not take the claim on trust. Three checks, and the exact output each one gives.</p>
+
+  <h3>1. The permissions claim</h3>
+  <p>Against a downloaded APK rather than against this page:</p>
+  <span class="fp">$ aapt2 dump permissions Gander-1.17.apk
+<span class="dim">package: com.arjun.gander
+permission: com.arjun.gander.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='com.arjun.gander.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'</span></span>
+  <p><strong>That is the whole output, and the one entry in it is not what it looks like.</strong>
+  <code>DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION</code> is not an Android permission. It is a
+  permission the app defines <em>for itself</em>, injected automatically by the AndroidX libraries
+  so that a component can register a broadcast receiver without exporting it. It is signature
+  level, self-granted, namespaced under the app's own package, and it grants nothing to anybody.
+  It is why Android's App permissions screen is still empty.</p>
+  <p>The build refuses to ship anything else. <a href="https://github.com/mokshablr/gander/blob/main/app/build.gradle.kts">
+  <code>app/build.gradle.kts</code></a> asserts on the merged manifest and fails the release build
+  on any permission not on a one-item allowlist, which is that entry, with the reason written next
+  to it. If you see a second <code>uses-permission</code> line, you are not looking at a Gander
+  release build, and I would like to know.</p>
+
+  <h3>2. The signature</h3>
+  <span class="fp">$ apksigner verify --print-certs -v Gander-1.17.apk
+<span class="dim">Verifies
+Number of signers: 1
+V2 Signer: certificate DN: CN=Gander, OU=Personal, O=Arjun
+V2 Signer: certificate SHA-256 digest: 5b5cf64a94237cd5f0e085760038bc1cebdf18daba5cb3eaca7c159f22a7e24b</span></span>
+  <p>The signing certificate SHA-256, in the grouped form:</p>
+  <span class="fp">5B:5C:F6:4A:94:23:7C:D5
+F0:E0:85:76:00:38:BC:1C
+EB:DF:18:DA:BA:5C:B3:EA
+CA:7C:15:9F:22:A7:E2:4B</span>
+  <p class="note">Tools print it colon-free and lowercase, which is the same value:
+  <span class="mono">5b5cf64a94237cd5f0e085760038bc1cebdf18daba5cb3eaca7c159f22a7e24b</span></p>
+
+  <h3>3. The binary</h3>
+  <p>Every GitHub release publishes its APK's own SHA-256 in the release body. For 1.17:</p>
+  <span class="fp wrapme">333aaffdfdb2abd2a96abc7dd431a1b5dcee3e83c3a475cac381df8631053a4c  Gander-1.17.apk</span>
+
+  <h3>What these checks do not prove</h3>
+  <p>They prove the APK you have is the one I signed, and that it declares no Android permission.
+  They do <strong>not</strong> prove the binary was built from the source in the repository. Gander
+  is not yet bit-for-bit reproducible, and the outstanding work is the vendored minified renderers,
+  which is also what currently keeps it off F-Droid. What you can check today is the manifest, the
+  signature and the source.</p>
+  <!-- UNVERIFIED, AND NOW VISIBLE. This note is .when-live, and the page flipped to live on
+       2026-09-16, so it will publish on the next upload. Two things in it are not established:
+       (1) that the Play app signing certificate is the same key, and therefore the same SHA-256
+       printed above. Play binds the app signing key when the FIRST release is created, so this
+       is only true if that key is Arjun's own; confirm the digest on Play Console under Test
+       and release > App integrity before uploading this page.
+       (2) that "an install can move between the two without being uninstalled first". That
+       behaviour has never been tested on a device. Delete or soften the sentence unless it has
+       been. -->
+  <p class="when-live note">The Play build and the GitHub release carry the same <strong>app signing
+  key</strong>, so an install can move between the two without being uninstalled first. That is the
+  key Google Play publishes under App integrity, and its SHA-256 is the value above. If an APK you
+  pulled off a device shows a different digest, it came from neither route.</p>
+</section>
+
+<section>
+  <h2 id="review">If you are reviewing it, five minutes</h2>
+  <p class="note">In this order. The first one is the story and takes twenty seconds.</p>
+  <ol>
+    <li><strong>Install it, then open Android Settings, Apps, Gander, Permissions.</strong> The row
+      is greyed out. Compare against whatever else opens PDFs on that phone.</li>
+    <li><strong>Turn on aeroplane mode and use it normally.</strong> Nothing changes, because
+      nothing was ever going out.</li>
+    <li><strong>Send yourself a PDF on WhatsApp or in email and tap it.</strong> It opens straight
+      into the document: no splash, no account, no sign-in wall.</li>
+    <li><strong>Open a long PDF and scroll hard</strong>, then pinch deep into a page. Then turn on
+      night mode and find a page with a photograph on it: the paper inverts and the photograph does
+      not.</li>
+    <li><strong>Try to break the premise.</strong> Look for a settings screen that asks for an
+      account, an upload button, a share-to-cloud. There is a share sheet, which hands the file to
+      whatever you pick, and that is the only way a document leaves.</li>
+  </ol>
+  <p class="note">The honest failure cases are in <a href="#limits">Honest limits</a>, so you do
+  not have to hunt for them.</p>
+</section>
+
+<section>
+  <h2 id="limits">Honest limits, and four things people get wrong</h2>
+  <p>Stated here so you do not have to find them yourself. All of it is on the store listing before
+  anyone installs.</p>
+  <ul>
+    <li>It is a viewer, not an editor.</li>
+    <li>Legacy binary <code>.doc</code> and <code>.ppt</code> do not open, because no open-source
+      renderer for them is both faithful and small enough to bundle. Binary <code>.xls</code> does
+      open.</li>
+    <li>Complex PowerPoint decks render approximately, and spreadsheet charts are not drawn.</li>
+    <li>PDF rendering needs Android System WebView 125 or newer. On Android 8 and 9 the last
+      WebView those devices will receive is Chromium 138, so this is a real ceiling rather than a
+      temporary one.</li>
+    <li>It is not on F-Droid yet. The renderers are vendored as minified upstream builds, which
+      F-Droid will not accept, and un-minifying or building them from source is the outstanding
+      work.</li>
+  </ul>
+  <h3>Corrections, if the draft says otherwise</h3>
+  <ul>
+    <li><strong>Gander is not a file manager.</strong> It never browses the phone on its own. It
+      opens the file or folder you hand it, which is the reason the permissions page is empty, and
+      it will not become one.</li>
+    <li><strong>&ldquo;No permissions&rdquo; is not &ldquo;permissions you can revoke&rdquo;.</strong>
+      There is nothing to revoke. Nothing was ever requested.</li>
+    <li><strong>The absence of INTERNET is a build-time gate, not a policy.</strong> It is asserted
+      by the build and fails it, rather than promised in a document.</li>
+    <li><strong>It is not a security product</strong> and does not claim to be. It is a viewer that
+      cannot reach the network.</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="quotes">What people have said</h2>
+  <p class="note">All four are public and quoted as written, each linked to its source.</p>
+  <blockquote>
+    <p>&ldquo;Permission path beats feature list.&rdquo;</p>
+    <cite><a href="https://www.linkedin.com/feed/update/urn:li:activity:7492452879027564544/">Pedro
+    de Sousa Avelino, on LinkedIn</a></cite>
+  </blockquote>
+  <blockquote>
+    <p>&ldquo;You built an excellent tool to solve a real-world problem: being able to open files on
+    the fly without granting internet access and without having to install 400 MB bloated suites
+    that track everything.&rdquo;</p>
+    <cite><a href="https://news.ycombinator.com/item?id=49121537">chesscoachx, Hacker News</a></cite>
+  </blockquote>
+  <blockquote>
+    <p>&ldquo;The app is pleasingly very responsive. I don't think I've used anything else on
+    Android that lets me open and close PDFs rapidly without getting bogged down.&rdquo;</p>
+    <cite><a href="https://news.ycombinator.com/item?id=49123024">array4277, Hacker News</a></cite>
+  </blockquote>
+  <blockquote>
+    <p>&ldquo;I was able to open the prior 117 MB 520 page PDF without a problem, and could also
+    scroll straight through from page 1 to the end at page 520. [&hellip;] No crash, no error.&rdquo;</p>
+    <cite><a href="https://github.com/mokshablr/gander/issues/16#issuecomment-5383775161">mjschwart,
+    closed tester, on GitHub</a></cite>
+  </blockquote>
+</section>
+
+<section>
+  <h2 id="background">Background</h2>
+  <p>First public release 19 July 2026, and nineteen releases to date, the current one being 1.17 on
+  14 September 2026. It has been distributed as a GitHub APK throughout, which is how it reached
+  11,486 downloads and 933 stars <span class="asof">(read 16 Sep 2026)</span> without a store
+  listing. Google Play requires a personal developer account to run a closed test of at least
+  twelve people for fourteen continuous days before it can publish; that test ran through August
+  and September 2026, and the tester group now has 77 members.</p>
+  <p class="note">It is written by one person, Arjun Maniyani, in India, alongside a job. If you
+  want the why in his own words rather than mine, ask him; it is not written down here because
+  putting words in his mouth is the one thing this page will not do.</p>
+</section>
+
+<section>
+  <h2 id="contact">Contact</h2>
+  <p>Arjun Maniyani &middot; <a href="mailto:gander@arjun.maniyani.com">gander@arjun.maniyani.com</a>
+  &middot; <a href="https://github.com/mokshablr">github.com/mokshablr</a>
+  &middot; <a rel="me" href="https://mastodon.social/@mokshablr">@mokshablr on Mastodon</a>
+  &middot; <a href="https://www.instagram.com/arjun.maniyani/">@arjun.maniyani on Instagram</a></p>
+  <p><strong>Email is the surest route</strong>, and most press mail is answered the same day,
+  including the awkward kind. I am in India (UTC+5:30), so a mail sent from London before lunch,
+  or from New York in the morning, usually has a reply waiting. A message on Mastodon or an
+  Instagram DM reaches me too, though a DM from an account I do not already follow lands in
+  Requests, so send anything time-critical by email.</p>
+  <p class="note">No embargo on anything here, so nothing needs agreeing before you write.</p>
+  <p class="note">If you want a detail that is not on this page, ask rather than guessing:
+  everything here is meant to be checkable, and a wrong number helps nobody. If you would rather be
+  told when a version ships, say so and you will get a line of email per release, roughly monthly,
+  and nothing else.</p>
+  <p class="print-only mono">arjun.maniyani.com/gander/press/</p>
+</section>
+
+<footer>
+  Gander is free and MIT licensed. This page carries no trackers, runs no JavaScript and makes no
+  external requests, same as the app.
+</footer>
+
+</div>
+</body>
+</html>

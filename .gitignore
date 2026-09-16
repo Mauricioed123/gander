@@ -31,3 +31,10 @@ docs/screenshots/v1.14-tab/
 # Generator working directory; the samples that ship are committed in
 # scripts/screenshots/samples/
 scripts/screenshots/out/
+
+# The press kit ZIP is a convenience bundle of assets that are already committed
+# individually beside it, so versioning it would put a second copy of the same
+# 3.5 MB of pictures into history on every rebuild, and a ZIP does not delta-
+# compress between versions. Rebuild it with scripts/make-press-kit.sh before
+# uploading docs/press/ to cPanel.
+docs/press/assets/gander-press-kit.zip
