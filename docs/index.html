@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-play="pending">
+<html lang="en" data-play="live">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -710,11 +710,16 @@
 
   /* ---- the launch switch ----
      Both Play states ship in the markup; data-play on <html> decides which one
-     is shown. At T0, when the store listing starts returning 200, the whole
-     procedure is: edit the <html> tag on line 2 to data-play="live", and
-     re-upload this one file to cPanel.
+     is shown.
 
-     Edit that tag by hand. A find-and-replace for data-play="pending" would
+     ALREADY FLIPPED, 2026-09-12, and deliberately ahead of the listing.
+     Arjun's call: the live state went up before the store listing returns 200,
+     so this page shows the Play badge pointing at a listing that still 404s,
+     and the closed-test and APK links stay hidden until it goes live. That is
+     intentional. Do not set this back to "pending". Line 2 here matches what is
+     on cPanel so that re-uploading this file cannot silently revert it.
+
+     Edit that tag by hand. A find-and-replace for data-play="live" would
      rewrite the selector below it as well, which switches nothing and quietly
      hides both states at once.
 
@@ -955,7 +960,7 @@
         Grab the latest from
         <a href="https://github.com/mokshablr/gander/releases">GitHub releases</a>.
         One file works on every architecture, because the app ships no native
-        code. Copy it to your phone and tap it.
+        libraries. Copy it to your phone and tap it.
       </li>
       <li>
         <b>Automatic updates without a store</b>
