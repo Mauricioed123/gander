@@ -1,0 +1,88 @@
+name: Build APK firmado
+
+# Compila el APK en la nube y lo deja como artefacto descargable.
+# No modifica el codigo fuente: solo anade el pipeline de construccion.
+#
+# Secrets que usa (Settings -> Secrets and variables -> Actions):
+#   KEYSTORE_BASE64    keystore .jks codificado en base64 (alias: gander)
+#   KEYSTORE_PASSWORD  contrasena del keystore
+#   KEY_PASSWORD       contrasena de la clave
+# Si no existen, el APK se genera sin firmar y el workflow lo avisa.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # El wrapper lo ejecuta codigo ajeno antes que el nuestro; se comprueba
+      # que sea el que publico Gradle.
+      - uses: gradle/actions/wrapper-validation@v4
+
+      # El proyecto exige JDK 21 (Gradle 8.13, AGP 8.11.2, Robolectric 4.16.1).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restaurar keystore desde secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            mkdir -p keystore
+            printf '%s' "$KEYSTORE_BASE64" | base64 -d > keystore/gander.jks
+            echo "Keystore restaurado en keystore/gander.jks"
+          else
+            echo "::warning::Falta el secret KEYSTORE_BASE64: el APK saldra SIN FIRMAR."
+          fi
+
+      # app/build.gradle.kts lee el keystore de keystore/gander.jks y las
+      # contrasenas de las propiedades GANDER_STORE_PASSWORD / GANDER_KEY_PASSWORD.
+      - name: Compilar APK release
+        env:
+          STORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: >-
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          -PGANDER_STORE_PASSWORD="$STORE_PASS"
+          -PGANDER_KEY_PASSWORD="$KEY_PASS"
+
+      - name: Verificar firma y hash
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -n1)
+          echo "APK generado: $APK"
+          ls -lh "$APK"
+          sha256sum "$APK"
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n1)
+          "$APKSIGNER" verify --print-certs "$APK"
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: gander-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # Solo si algo falla: los reportes de lint y tests, que el log no muestra.
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gander-build-reports
+          path: app/build/reports/
+          retention-days: 7
