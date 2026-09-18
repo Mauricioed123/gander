@@ -97,7 +97,16 @@ android {
         // Regenerate after fixing some: delete app/lint-baseline.xml, run
         // ./gradlew lintDebug (it fails once, on purpose, having written a new
         // baseline), and read the diff before committing it.
-        disable += setOf("GradleDependency", "AndroidGradlePluginVersion", "NewerVersionAvailable")
+        // Typos is off because its dictionary is English and this app is Spanish: it
+        // reads "momento" as a misspelling of "memento" and "Autor" of "Author", and
+        // warningsAsErrors turns each of those into a failed build. Nothing it can say
+        // about these strings is true.
+        disable += setOf(
+            "GradleDependency",
+            "AndroidGradlePluginVersion",
+            "NewerVersionAvailable",
+            "Typos",
+        )
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
         // A lint failure should stop CI, not be buried in a report nobody opens
