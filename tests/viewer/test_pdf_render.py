@@ -293,7 +293,7 @@ def test_a_file_that_is_not_a_pdf_says_so(viewer, page):
         "return e && e.className.indexOf('vw-error') >= 0; }",
         timeout=20000,
     )
-    assert "not a PDF" in status_text(page)
+    assert "no es un PDF" in status_text(page)
 
 
 def test_a_document_that_cannot_be_read_says_so(viewer, page):
@@ -313,7 +313,7 @@ def test_a_document_that_cannot_be_read_says_so(viewer, page):
 def test_an_encrypted_document_asks_for_its_password(viewer, page):
     viewer("pdf.html", "encrypted.pdf")
     page.wait_for_selector("#vw-pw", timeout=20000)
-    assert "password" in status_text(page).lower()
+    assert "contraseña" in status_text(page).lower()
 
 
 def test_the_wrong_password_says_so_out_loud(viewer, page):
@@ -360,7 +360,7 @@ def test_an_old_engine_is_told_to_update_it(viewer, page):
     page.wait_for_selector(".vw-error", timeout=15000)
     said = status_text(page)
     assert "110" in said and "125" in said
-    assert "updating android system webview" in said.lower()
+    assert "actualizar android system webview" in said.lower()
 
 
 def test_a_locked_engine_is_not_told_to_update_what_it_cannot(viewer, page):
@@ -371,7 +371,7 @@ def test_a_locked_engine_is_not_told_to_update_what_it_cannot(viewer, page):
     viewer("pdf.html", "six-pages.pdf", webview=110, needs=125, locked=1)
     page.wait_for_selector(".vw-error", timeout=15000)
     said = status_text(page)
-    assert "cannot be" in said.lower()
+    assert "no se puede" in said.lower()
     assert "Updating Android System WebView" not in said
 
 

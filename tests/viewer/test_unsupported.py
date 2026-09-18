@@ -21,7 +21,7 @@ def test_reading_it_as_text_is_offered_with_a_caveat(viewer, page):
     viewer("unsupported.html", "unknown.xyz")
     page.wait_for_selector("#asText", timeout=10000)
     assert page.get_attribute("#asText", "aria-describedby") == "caveat"
-    assert "random characters" in page.text_content("#caveat")
+    assert "caracteres sin sentido" in page.text_content("#caveat")
 
 
 def test_reading_it_as_text_opens_the_text_viewer(viewer, page):

@@ -170,14 +170,14 @@ class FormatRegistryTest {
         val spoken = context.getString(R.string.welcome_formats_spoken).lowercase()
         val expected = mapOf(
             "PDF" to listOf("pdf"),
-            "DOC" to listOf("word", "document"),
-            "XLS" to listOf("excel", "spreadsheet"),
-            "PPT" to listOf("powerpoint", "slide", "presentation"),
-            "IMG" to listOf("photo", "image", "picture"),
+            "DOC" to listOf("word", "document", "documento"),
+            "XLS" to listOf("excel", "spreadsheet", "hoja"),
+            "PPT" to listOf("powerpoint", "slide", "presentation", "presentación"),
+            "IMG" to listOf("photo", "image", "picture", "imagen", "imágenes", "foto"),
             "VID" to listOf("video"),
-            "AUD" to listOf("audio", "music", "sound"),
+            "AUD" to listOf("audio", "music", "sound", "sonido", "música"),
             "MD" to listOf("markdown"),
-            "TXT" to listOf("text", "code"),
+            "TXT" to listOf("text", "code", "texto", "código"),
         )
         WELCOME_BADGES.forEach { (label, _) ->
             val words = expected.getValue(label)
