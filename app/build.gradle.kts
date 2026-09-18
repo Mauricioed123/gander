@@ -101,11 +101,16 @@ android {
         // reads "momento" as a misspelling of "memento" and "Autor" of "Author", and
         // warningsAsErrors turns each of those into a failed build. Nothing it can say
         // about these strings is true.
+        // UseCompoundDrawables is off because the mark it wants folded into the TextView
+        // is the launcher icon, and an adaptive icon has no intrinsic size a compound
+        // drawable could use: it would be drawn at its 108dp canvas. The ImageView is
+        // there so the size can be stated as the 28dp the toolbar needs.
         disable += setOf(
             "GradleDependency",
             "AndroidGradlePluginVersion",
             "NewerVersionAvailable",
             "Typos",
+            "UseCompoundDrawables",
         )
         baseline = file("lint-baseline.xml")
         warningsAsErrors = true
