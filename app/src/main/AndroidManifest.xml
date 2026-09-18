@@ -23,7 +23,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Gander">
+        android:theme="@style/Theme.TriniOffice">
 
         <!-- Lets the Share action hand out the shared-text temp file; grants are
              per-share and read-only, so the zero-permission story is unchanged -->

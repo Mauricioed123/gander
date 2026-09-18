@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Los mismos tres acentos en modo noche. El tono sube y el contenedor baja, que es la
+     regla de Material para fondos oscuros: un primario de tono 40 sobre negro no llega
+     al contraste minimo, y uno de tono 80 si.
+
+     Grafito no aparece aqui a proposito: es la unica apariencia que no sigue al sistema,
+     asi que sus colores viven solo en values/colors_grafito.xml.
+-->
+<resources>
+    <color name="rosa_primary">#FFB0C8</color>
+    <color name="rosa_on_primary">#5F1130</color>
+    <color name="rosa_primary_container">#7E2A48</color>
+    <color name="rosa_on_primary_container">#FFD9E2</color>
+
+    <color name="azul_primary">#A6C8FF</color>
+    <color name="azul_on_primary">#00325B</color>
+    <color name="azul_primary_container">#00497F</color>
+    <color name="azul_on_primary_container">#D3E4FF</color>
+
+    <color name="gris_primary">#B4C2CC</color>
+    <color name="gris_on_primary">#1F2C34</color>
+    <color name="gris_primary_container">#36434C</color>
+    <color name="gris_on_primary_container">#D7E3EC</color>
+</resources>

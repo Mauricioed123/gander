@@ -12,7 +12,7 @@
          windowBackground is here as well as colorBackground so the warm ground reaches
          behind the list rather than showing through as the platform default.
     -->
-    <style name="Theme.Gander" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.TriniOffice" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/gander_primary</item>
         <item name="colorOnPrimary">@color/gander_on_primary</item>
         <item name="colorPrimaryContainer">@color/gander_primary_container</item>
@@ -51,7 +51,7 @@
         <item name="android:windowLightStatusBar">@bool/gander_light_status_bar</item>
     </style>
 
-    <style name="ShapeAppearance.Gander.Thumb" parent="">
+    <style name="ShapeAppearance.TriniOffice.Thumb" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12dp</item>
     </style>
@@ -59,7 +59,7 @@
     <!-- About dialog. Body text is inset to the dialog's own 24dp gutter; the
          tappable rows run full bleed so the ripple reaches both edges. Every
          style sets parent="" so the dotted names do not inherit each other. -->
-    <style name="Widget.Gander.About.Body" parent="">
+    <style name="Widget.TriniOffice.About.Body" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">24dp</item>
@@ -67,7 +67,7 @@
         <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
     </style>
 
-    <style name="Widget.Gander.About.Divider" parent="">
+    <style name="Widget.TriniOffice.About.Divider" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
         <item name="android:layout_marginStart">24dp</item>
@@ -75,7 +75,7 @@
         <item name="android:background">?attr/colorOutlineVariant</item>
     </style>
 
-    <style name="Widget.Gander.About.Row" parent="">
+    <style name="Widget.TriniOffice.About.Row" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">vertical</item>
@@ -88,17 +88,89 @@
         <item name="android:focusable">true</item>
     </style>
 
-    <style name="Widget.Gander.About.Row.Title" parent="">
+    <style name="Widget.TriniOffice.About.Row.Title" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
         <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
-    <style name="Widget.Gander.About.Row.Subtitle" parent="">
+    <style name="Widget.TriniOffice.About.Row.Subtitle" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!--
+         Las cuatro apariencias. Cada una hereda de Theme.TriniOffice y cambia solo la
+         familia del acento, que es lo que el resto de las pantallas ya lee a traves de
+         ?attr/colorPrimary y sus contenedores. Los valores claros y oscuros de cada
+         acento estan en values/colors_paletas.xml y values-night/colors_paletas.xml, asi
+         que las tres primeras siguen solas al modo del telefono.
+
+         Grafito es la excepcion: no sigue al sistema. Cambia tambien las superficies,
+         porque su promesa es ser negro siempre, y por eso sus colores viven solo en
+         values/colors_grafito.xml, sin gemelo de noche que los pise.
+    -->
+    <style name="Theme.TriniOffice.Rosa" parent="Theme.TriniOffice">
+        <item name="colorPrimary">@color/rosa_primary</item>
+        <item name="colorOnPrimary">@color/rosa_on_primary</item>
+        <item name="colorPrimaryContainer">@color/rosa_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/rosa_on_primary_container</item>
+    </style>
+
+    <style name="Theme.TriniOffice.Azul" parent="Theme.TriniOffice">
+        <item name="colorPrimary">@color/azul_primary</item>
+        <item name="colorOnPrimary">@color/azul_on_primary</item>
+        <item name="colorPrimaryContainer">@color/azul_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/azul_on_primary_container</item>
+    </style>
+
+    <style name="Theme.TriniOffice.Gris" parent="Theme.TriniOffice">
+        <item name="colorPrimary">@color/gris_primary</item>
+        <item name="colorOnPrimary">@color/gris_on_primary</item>
+        <item name="colorPrimaryContainer">@color/gris_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/gris_on_primary_container</item>
+    </style>
+
+    <style name="Theme.TriniOffice.Grafito" parent="Theme.TriniOffice">
+        <item name="colorPrimary">@color/grafit_primary</item>
+        <item name="colorOnPrimary">@color/grafit_on_primary</item>
+        <item name="colorPrimaryContainer">@color/grafit_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/grafit_on_primary_container</item>
+        <item name="colorSecondary">@color/grafit_secondary</item>
+        <item name="colorOnSecondary">@color/grafit_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/grafit_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/grafit_on_secondary_container</item>
+        <item name="colorTertiary">@color/grafit_tertiary</item>
+        <item name="colorOnTertiary">@color/grafit_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/grafit_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/grafit_on_tertiary_container</item>
+        <item name="colorError">@color/grafit_error</item>
+        <item name="colorOnError">@color/grafit_on_error</item>
+        <item name="colorErrorContainer">@color/grafit_error_container</item>
+        <item name="colorOnErrorContainer">@color/grafit_on_error_container</item>
+        <item name="colorSurface">@color/grafit_surface</item>
+        <item name="colorOnSurface">@color/grafit_on_surface</item>
+        <item name="colorOnBackground">@color/grafit_on_surface</item>
+        <item name="colorSurfaceVariant">@color/grafit_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/grafit_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/grafit_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/grafit_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/grafit_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/grafit_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/grafit_surface_container_highest</item>
+        <item name="colorSurfaceDim">@color/grafit_surface_dim</item>
+        <item name="colorSurfaceBright">@color/grafit_surface_bright</item>
+        <item name="colorOutline">@color/grafit_outline</item>
+        <item name="colorOutlineVariant">@color/grafit_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/grafit_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/grafit_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/grafit_inverse_primary</item>
+        <item name="android:colorBackground">@color/grafit_surface</item>
+        <item name="android:windowBackground">@color/grafit_surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="isLightTheme">false</item>
     </style>
 </resources>

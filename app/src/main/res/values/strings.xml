@@ -28,6 +28,13 @@
     <string name="formats_title">Formatos que abre</string>
     <string name="formats_detail">Todo se dibuja en tu teléfono con las bibliotecas que vienen dentro de la app. Nunca se descarga nada ni se envía tu archivo a ningún servidor.</string>
     <string name="close">Cerrar</string>
+    <!-- Las cuatro apariencias: el menu que las elige y sus nombres. -->
+    <string name="apariencia_menu">Apariencia</string>
+    <string name="apariencia_titulo">Apariencia</string>
+    <string name="apariencia_rosa">Rosa</string>
+    <string name="apariencia_grafito">Grafito (oscuro)</string>
+    <string name="apariencia_azul">Azul</string>
+    <string name="apariencia_gris">Gris</string>
     <!-- Releasing a folder grant is the one thing on this screen that cannot be undone:
          Android has no way to re-take a released permission, so the reader would have to
          walk the system picker again. Hence the only confirmation in the app. -->

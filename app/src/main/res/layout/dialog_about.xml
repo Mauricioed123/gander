@@ -16,13 +16,13 @@
 
         <TextView
             android:id="@+id/aboutVersion"
-            style="@style/Widget.Gander.About.Body"
+            style="@style/Widget.TriniOffice.About.Body"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="Version 1.10" />
 
         <TextView
-            style="@style/Widget.Gander.About.Body"
+            style="@style/Widget.TriniOffice.About.Body"
             android:layout_marginTop="10dp"
             android:text="@string/main_subtitle" />
 
@@ -71,59 +71,59 @@
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            style="@style/Widget.Gander.About.Body"
+            style="@style/Widget.TriniOffice.About.Body"
             android:layout_marginTop="18dp"
             android:text="@string/open_with_hint"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <View
-            style="@style/Widget.Gander.About.Divider"
+            style="@style/Widget.TriniOffice.About.Divider"
             android:layout_marginTop="16dp" />
 
         <LinearLayout
             android:id="@+id/aboutAuthor"
-            style="@style/Widget.Gander.About.Row">
+            style="@style/Widget.TriniOffice.About.Row">
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Title"
+                style="@style/Widget.TriniOffice.About.Row.Title"
                 android:text="@string/about_made_by" />
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Subtitle"
+                style="@style/Widget.TriniOffice.About.Row.Subtitle"
                 android:text="@string/about_made_by_url" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/aboutSource"
-            style="@style/Widget.Gander.About.Row">
+            style="@style/Widget.TriniOffice.About.Row">
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Title"
+                style="@style/Widget.TriniOffice.About.Row.Title"
                 android:text="@string/about_source" />
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Subtitle"
+                style="@style/Widget.TriniOffice.About.Row.Subtitle"
                 android:text="@string/about_source_url" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/aboutLicences"
-            style="@style/Widget.Gander.About.Row">
+            style="@style/Widget.TriniOffice.About.Row">
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Title"
+                style="@style/Widget.TriniOffice.About.Row.Title"
                 android:text="@string/about_licences" />
 
             <TextView
-                style="@style/Widget.Gander.About.Row.Subtitle"
+                style="@style/Widget.TriniOffice.About.Row.Subtitle"
                 android:text="@string/about_licences_detail" />
         </LinearLayout>
 
-        <View style="@style/Widget.Gander.About.Divider" />
+        <View style="@style/Widget.TriniOffice.About.Divider" />
 
         <TextView
-            style="@style/Widget.Gander.About.Body"
+            style="@style/Widget.TriniOffice.About.Body"
             android:layout_marginTop="14dp"
             android:text="@string/about_copyright"
             android:textAppearance="?attr/textAppearanceBodySmall"

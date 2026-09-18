@@ -34,7 +34,7 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:visibility="gone"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Gander.Thumb"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.TriniOffice.Thumb"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
     </FrameLayout>
 

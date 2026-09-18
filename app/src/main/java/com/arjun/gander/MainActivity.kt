@@ -144,6 +144,9 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Antes de super.onCreate: la apariencia elegida tiene que estar puesta cuando la
+        // actividad infla su primera vista, o la pantalla aparece con la anterior.
+        setTheme(Apariencia.actual(this).estilo)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root)) { v, insets ->
@@ -169,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.action_rate -> { openPlayListing(); true }
                 R.id.action_share_app -> { shareGander(); true }
                 R.id.action_formats -> { showFormats(); true }
+                R.id.action_apariencia -> { showApariencia(); true }
                 R.id.action_about -> { showAbout(); true }
                 else -> false
             }
@@ -296,6 +300,29 @@ class MainActivity : AppCompatActivity() {
      * a single file used to put the list of what this app opens out of reach for good.
      * This is the way back to it, and it is the same grid, filled by the same call.
      */
+    /**
+     * The four looks, as a single-choice list.
+     *
+     * Choosing one writes it down and recreates the activity, which is the only way a
+     * theme can be applied to a screen that is already drawn. Recreating is also what
+     * makes the choice visible immediately, rather than on the next launch.
+     */
+    private fun showApariencia() {
+        val actual = Apariencia.actual(this)
+        val nombres = Apariencia.entries.map { getString(it.nombre) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.apariencia_titulo)
+            .setSingleChoiceItems(nombres, Apariencia.entries.indexOf(actual)) { dialog, which ->
+                dialog.dismiss()
+                val elegida = Apariencia.entries[which]
+                if (elegida != actual) {
+                    Apariencia.fijar(this, elegida)
+                    recreate()
+                }
+            }
+            .show()
+    }
+
     private fun showFormats() {
         val view = layoutInflater.inflate(R.layout.dialog_formats, null)
         fillFormatGrid(view.findViewById(R.id.formatGrid))

@@ -12,6 +12,11 @@
         android:id="@+id/action_share_app"
         android:title="@string/share_app"
         app:showAsAction="never" />
+    <!-- The four looks, chosen here and remembered. -->
+    <item
+        android:id="@+id/action_apariencia"
+        android:title="@string/apariencia_menu"
+        app:showAsAction="never" />
     <!-- The first-run block that lists the formats is shown only while the app is empty,
          so this is the way back to it once a file has been opened. -->
     <item

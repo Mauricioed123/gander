@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Acentos de las apariencias. Solo cambia la familia del color primario: los fondos,
+     las superficies y el modo noche siguen siendo los de colors.xml, que ya tienen sus
+     valores noche en values-night/colors.xml.
+
+     Cada apariencia existe como estilo en themes.xml (Theme.TriniOffice.<nombre>), y la
+     aplicacion llama a setTheme antes de super.onCreate con la elegida en Ajustes.
+
+     Los tonos siguen la regla de Material: en claro el primario va por el tono 40 y en
+     oscuro por el 80, con el contenedor en 90 y 30. Todos los pares texto/fondo pasan
+     el contraste AA de WCAG.
+-->
+<resources>
+
+    <!-- Rosa: el mismo tono del icono de la app. Es la apariencia por defecto. -->
+    <color name="rosa_primary">#B3245A</color>
+    <color name="rosa_on_primary">#FFFFFF</color>
+    <color name="rosa_primary_container">#FFD9E2</color>
+    <color name="rosa_on_primary_container">#3F001F</color>
+
+    <!-- Azul -->
+    <color name="azul_primary">#145DA0</color>
+    <color name="azul_on_primary">#FFFFFF</color>
+    <color name="azul_primary_container">#D3E4FF</color>
+    <color name="azul_on_primary_container">#001C38</color>
+
+    <!-- Gris -->
+    <color name="gris_primary">#4C5A63</color>
+    <color name="gris_on_primary">#FFFFFF</color>
+    <color name="gris_primary_container">#D7E3EC</color>
+    <color name="gris_on_primary_container">#0B1A22</color>
+</resources>

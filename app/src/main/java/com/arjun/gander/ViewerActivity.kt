@@ -204,6 +204,9 @@ class ViewerActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // The same apariencia the list is wearing: this is a second activity, and nothing
+        // carries a theme across the two.
+        setTheme(Apariencia.actual(this).estilo)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_viewer)
         applySystemBarInsets(findViewById(R.id.root))
