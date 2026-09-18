@@ -87,7 +87,7 @@
     <string name="about_permissions_none">Ninguno</string>
     <!-- Sits under the permission line, which the app reads back from Android at
          runtime rather than asserting for itself -->
-    <string name="about_permissions_detail">Se le preguntan a Android en este momento, no están escritos aquí de antemano. Trini Office tampoco tiene permiso de internet, así que no puede enviar tus archivos a ningún lado.</string>
+    <string name="about_permissions_detail">Se le preguntan a Android ahora mismo, no están escritos aquí de antemano. Trini Office tampoco tiene permiso de internet, así que no puede enviar tus archivos a ningún lado.</string>
     <string name="about_made_by">Autor original: Arjun Maniyani</string>
     <string name="about_made_by_url" translatable="false">arjun.maniyani.com</string>
     <string name="about_source">Código fuente</string>
