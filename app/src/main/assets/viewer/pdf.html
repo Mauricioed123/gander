@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>PDF document</title>
+<title>Documento PDF</title>
 <!-- Deliberately no viewport meta, unlike the other viewers. Without one the
      WebView lays out at its default 980 CSS px and loadWithOverviewMode zooms
      that down to fit, which on a Nothing Phone 2 puts one CSS px at about 1.1
@@ -511,30 +511,30 @@
 function vwNeedsNewerWebView(have, needs, locked) {
   if (locked) {
     vwError(
-      "PDFs cannot be shown on this phone",
-      "Every other format Trini Office opens still works. " +
+      "No se pueden mostrar PDF en este teléfono",
+      "Todos los demás formatos que abre Trini Office siguen funcionando. " +
       // No floor is written here. The number arrives in the query string so that
       // raising PDFJS_MIN_CHROMIUM_MAJOR stays a one-constant edit, which means
       // the sentence has to work without it too.
       (needs
-        ? "PDFs need the browser engine built into your phone to be version " +
-          needs + " or newer, and this one is " + (have || "older") + ". "
-        : "PDFs need a newer browser engine than the one built into your phone. ") +
-      "On this phone that engine comes from the manufacturer and cannot be " +
-      "updated or replaced, so installing Android System WebView will not help."
+        ? "Los PDF necesitan que el motor del navegador de tu teléfono sea la versión " +
+          needs + " o posterior, y el tuyo es " + (have || "anterior") + ". "
+        : "Los PDF necesitan un motor de navegador más nuevo que el que trae tu teléfono. ") +
+      "En este teléfono ese motor lo pone el fabricante y no se puede " +
+      "actualizar ni reemplazar, así que instalar Android System WebView no ayuda."
     );
     return;
   }
   vwError(
-    "Android System WebView is too old to show PDFs",
-    "Trini Office draws PDFs using Android System WebView, the browser engine built " +
-    "into your phone. " +
+    "Android System WebView es demasiado antiguo para mostrar PDF",
+    "Trini Office dibuja los PDF con Android System WebView, el motor del navegador que " +
+    "viene en tu teléfono. " +
     (have && needs
-      ? "This one is version " + have + " and the PDF renderer needs " +
-        needs + " or newer. "
-      : "This one is too old to run the PDF renderer. ") +
-    "Updating Android System WebView and reopening the file will fix it. " +
-    "Every other format Trini Office opens still works."
+      ? "El tuyo es la versión " + have + " y el visor de PDF necesita la " +
+        needs + " o posterior. "
+      : "El tuyo es demasiado antiguo para el visor de PDF. ") +
+    "Actualizar Android System WebView y volver a abrir el archivo lo soluciona. " +
+    "Todos los demás formatos que abre Trini Office siguen funcionando."
   );
 }
 
@@ -2724,7 +2724,7 @@ function vwAskPassword(updatePassword, reason) {
 
   var title = document.createElement("div");
   title.className = "vw-ask-title";
-  title.textContent = "This PDF is password protected";
+  title.textContent = "Este PDF tiene contraseña";
   el.appendChild(title);
 
   /*
@@ -2749,14 +2749,14 @@ function vwAskPassword(updatePassword, reason) {
     retryNote.id = "vw-pw-alert";
     retryNote.className = "vw-ask-alert";
     retryNote.setAttribute("role", "alert");
-    retryNote.textContent = "That password did not work.";
+    retryNote.textContent = "Esa contraseña no funcionó.";
     el.appendChild(retryNote);
   }
 
   var label = document.createElement("label");
   label.className = "vw-ask-label";
   label.htmlFor = "vw-pw";
-  label.textContent = "Enter its password to open it.";
+  label.textContent = "Escribe su contraseña para abrirlo.";
   el.appendChild(label);
 
   /* A form, not a bare button, so the on-screen keyboard's Go key submits too. */
@@ -2777,7 +2777,7 @@ function vwAskPassword(updatePassword, reason) {
   var btn = document.createElement("button");
   btn.type = "submit";
   btn.className = "vw-ask-btn";
-  btn.textContent = "Open";
+  btn.textContent = "Abrir";
 
   row.appendChild(input);
   row.appendChild(btn);
@@ -2793,7 +2793,7 @@ function vwAskPassword(updatePassword, reason) {
     /* Drop the answer out of the DOM on the way past, and put the status line
        back so that decrypting a large document does not read as a dead tap. */
     input.value = "";
-    vwStatus("Opening document…");
+    vwStatus("Abriendo el documento…");
     updatePassword(pw);
   });
 
@@ -2931,33 +2931,33 @@ function vwFailure(e) {
      already the right answer. */
   if (/encryption|crypto/i.test(String(e && e.message))) {
     return [
-      "This PDF is protected in a way Trini Office cannot open",
-      "It is encrypted, but not with the password scheme its renderer reads, so " +
-      "there is nothing you could type here that would open it. Every other " +
-      "format Trini Office opens still works."
+      "Este PDF está protegido de una forma que Trini Office no puede abrir",
+      "Está cifrado, pero no con el esquema de contraseña que lee su visor, así que " +
+      "no hay nada que puedas escribir aquí que lo abra. Todos los demas " +
+      "formatos que abre Trini Office siguen funcionando."
     ];
   }
   switch (e && e.name) {
     case "PasswordException":
       return [
-        "This PDF could not be unlocked",
-        "The password was not accepted. If the file opens elsewhere, its " +
-        "protection is of a kind Trini Office cannot read yet."
+        "No se pudo desbloquear este PDF",
+        "No se aceptó la contraseña. Si el archivo se abre en otro lado, su " +
+        "protección es de un tipo que Trini Office todavia no puede leer."
       ];
     case "InvalidPDFException":
       return [
-        "This file is not a PDF that can be read",
-        "It is either damaged or not a PDF at all, whatever it happens to be " +
-        "named. Every other format Trini Office opens still works."
+        "Este archivo no es un PDF que se pueda leer",
+        "Está dañado o no es un PDF, sin importar como se " +
+        "llame el archivo. Todos los demás formatos que abre Trini Office siguen funcionando."
       ];
     case "ResponseException":
       return [
-        "This PDF could not be read to the end",
-        "Trini Office lost access to the file part way through loading it. Opening it " +
-        "again usually settles this."
+        "No se pudo leer este PDF hasta el final",
+        "Trini Office perdió el acceso al archivo a mitad de la carga. Abrirlo " +
+        "otra vez suele resolverlo."
       ];
     default:
-      return ["Could not render this PDF", String(e)];
+      return ["No se pudo mostrar este PDF", String(e)];
   }
 }
 

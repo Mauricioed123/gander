@@ -74,7 +74,7 @@ vwFetchDoc("text")
     document.getElementById("content").innerHTML = DOMPurify.sanitize(html);
     vwStatusDone();
   })
-  .catch(function (e) { vwError("Could not render this Markdown file", String(e)); });
+  .catch(function (e) { vwError("No se pudo mostrar este archivo Markdown", String(e)); });
 </script>
 </body>
 </html>

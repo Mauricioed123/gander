@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Spreadsheet</title>
+<title>Hoja de cálculo</title>
 <link rel="stylesheet" href="app.css">
 <style>
   /* No viewport meta on this page, so the WebView lays out at its 980 CSS px default
@@ -71,7 +71,7 @@
 vwFetchDoc("buffer")
   .then(function (buf) {
     var wb = XLSX.read(new Uint8Array(buf), { type: "array", cellDates: true });
-    if (!wb.SheetNames.length) throw new Error("The workbook has no sheets");
+    if (!wb.SheetNames.length) throw new Error("El libro no tiene hojas");
     var tabs = document.getElementById("tabs");
     var sheetDiv = document.getElementById("sheet");
     function show(idx) {
@@ -90,7 +90,7 @@ vwFetchDoc("buffer")
     show(0);
     vwStatusDone();
   })
-  .catch(function (e) { vwError("Could not open this spreadsheet", String(e)); });
+  .catch(function (e) { vwError("No se pudo abrir esta hoja de cálculo", String(e)); });
 </script>
 </body>
 </html>

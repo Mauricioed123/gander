@@ -81,7 +81,7 @@ function vwDocUrl() {
 /* Fetch the document being viewed. kind: "buffer" | "text" */
 function vwFetchDoc(kind) {
   return fetch(vwDocUrl()).then(function (r) {
-    if (!r.ok) throw new Error("Could not read the file (HTTP " + r.status + ")");
+    if (!r.ok) throw new Error("No se pudo leer el archivo (HTTP " + r.status + ")");
     return kind === "text" ? r.text() : r.arrayBuffer();
   });
 }
@@ -105,7 +105,7 @@ function vwEncodingOf(bytes) {
  */
 function vwOpenText() {
   return fetch(vwDocUrl()).then(function (r) {
-    if (!r.ok) throw new Error("Could not read the file (HTTP " + r.status + ")");
+    if (!r.ok) throw new Error("No se pudo leer el archivo (HTTP " + r.status + ")");
 
     // One streaming decoder across every page, so a multi-byte character split
     // by a page boundary still comes out whole. Decoding stays lenient, so an
@@ -179,5 +179,5 @@ function vwFormatSize(bytes) {
 }
 
 window.onerror = function (message) {
-  vwError("Something went wrong while rendering", String(message));
+  vwError("Algo salió mal al dibujar el archivo", String(message));
 };

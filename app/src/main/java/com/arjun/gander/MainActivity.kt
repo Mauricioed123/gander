@@ -168,6 +168,7 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.action_rate -> { openPlayListing(); true }
                 R.id.action_share_app -> { shareGander(); true }
+                R.id.action_formats -> { showFormats(); true }
                 R.id.action_about -> { showAbout(); true }
                 else -> false
             }
@@ -288,6 +289,22 @@ class MainActivity : AppCompatActivity() {
      * permission list read back out of Android, plus the way in to the licence
      * text the bundled libraries require to travel with the binary.
      */
+    /**
+     * The format list again, on demand.
+     *
+     * The block it lives in is shown only while the app holds nothing at all, so opening
+     * a single file used to put the list of what this app opens out of reach for good.
+     * This is the way back to it, and it is the same grid, filled by the same call.
+     */
+    private fun showFormats() {
+        val view = layoutInflater.inflate(R.layout.dialog_formats, null)
+        fillFormatGrid(view.findViewById(R.id.formatGrid))
+        MaterialAlertDialogBuilder(this)
+            .setView(view)
+            .setPositiveButton(R.string.close, null)
+            .show()
+    }
+
     private fun showAbout() {
         val view = layoutInflater.inflate(R.layout.dialog_about, null)
 

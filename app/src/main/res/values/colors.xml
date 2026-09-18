@@ -64,5 +64,5 @@
 
     <!-- Unchanged: the icon and the app it opens are one family already, and
          retouching it means regenerating two baked PNGs that are not in this repo. -->
-    <color name="ic_launcher_background">#F6F1E6</color>
+    <color name="ic_launcher_background">#D6336C</color>
 </resources>

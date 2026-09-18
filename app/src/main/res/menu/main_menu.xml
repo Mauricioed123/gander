@@ -12,6 +12,12 @@
         android:id="@+id/action_share_app"
         android:title="@string/share_app"
         app:showAsAction="never" />
+    <!-- The first-run block that lists the formats is shown only while the app is empty,
+         so this is the way back to it once a file has been opened. -->
+    <item
+        android:id="@+id/action_formats"
+        android:title="@string/formats_menu"
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_about"
         android:title="@string/about_gander"

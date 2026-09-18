@@ -1,12 +1,14 @@
 # Open source licences
 
-Trini Office is free software. It also renders your documents with open source
-JavaScript libraries that are bundled into the app rather than fetched, because
-Trini Office has no network access at all. Their licences ask that the notices travel
-with the software, so they are reproduced in full below and this page ships
-inside the APK.
+Trini Office es software libre. Dibuja tus documentos con bibliotecas de JavaScript
+de código abierto que vienen dentro de la aplicación en lugar de descargarse, porque
+Trini Office no tiene ningún acceso a la red. Sus licencias piden que los avisos
+viajen con el software, así que se reproducen completos aqui abajo y esta pagina
+viene dentro del APK.
 
-You are reading this in Trini Office's own Markdown viewer.
+Estás leyendo esto en el propio visor de Markdown de Trini Office.
+
+El texto legal que sigue se conserva en su idioma original, tal como fue publicado.
 
 ## Gander
 

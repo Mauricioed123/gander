@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unknown format</title>
+<title>Formato desconocido</title>
 <link rel="stylesheet" href="app.css">
 <style>
   .card {
@@ -40,11 +40,11 @@
 </head>
 <body>
 <div class="card">
-  <h2>Trini Office doesn't recognize this format</h2>
+  <h2>Trini Office no reconoce este formato</h2>
   <p class="fname" id="fname"></p>
   <p id="hint"></p>
-  <button type="button" class="as-text" id="asText" aria-describedby="caveat">View as text</button>
-  <p class="caveat" id="caveat">If it isn't text, you'll see random characters.</p>
+  <button type="button" class="as-text" id="asText" aria-describedby="caveat">Ver como texto</button>
+  <p class="caveat" id="caveat">Si no es texto, verás caracteres sin sentido.</p>
 </div>
 <script src="app.js"></script>
 <script>
@@ -52,8 +52,8 @@ document.getElementById("fname").textContent = vwName;
 var hint = document.getElementById("hint");
 if (vwExt === "doc" || vwExt === "ppt") {
   hint.textContent =
-    "This is a legacy Office format (." + vwExt + "). If you re-save it as ." +
-    (vwExt === "doc" ? "docx" : "pptx") + ", Trini Office can display it.";
+    "Es un formato antiguo de Office (." + vwExt + "). Si lo vuelves a guardar como ." +
+    (vwExt === "doc" ? "docx" : "pptx") + ", Trini Office puede mostrarlo.";
 } else {
   // Nothing useful to add; leave the card to the action below
   hint.style.display = "none";

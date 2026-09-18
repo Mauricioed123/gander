@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Presentation</title>
+<title>Presentación</title>
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="lib/pptx/pptxjs.css">
 <link rel="stylesheet" href="lib/pptx/nv.d3.min.css">
@@ -78,7 +78,7 @@ try {
     mediaProcess: true
   });
 } catch (e) {
-  vwError("Could not render this presentation", String(e));
+  vwError("No se pudo mostrar esta presentación", String(e));
 }
 var vwChecks = 0;
 var vwPoll = setInterval(function () {
@@ -92,7 +92,7 @@ var vwPoll = setInterval(function () {
   } else if (vwChecks > 40) {
     clearInterval(vwPoll);
     vwError(
-      "Could not render this presentation",
+      "No se pudo mostrar esta presentación",
       "This .pptx may use features the built-in renderer does not understand yet."
     );
   }
