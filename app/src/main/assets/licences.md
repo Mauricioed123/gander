@@ -1,12 +1,12 @@
 # Open source licences
 
-Gander is free software. It also renders your documents with open source
+Trini Office is free software. It also renders your documents with open source
 JavaScript libraries that are bundled into the app rather than fetched, because
-Gander has no network access at all. Their licences ask that the notices travel
+Trini Office has no network access at all. Their licences ask that the notices travel
 with the software, so they are reproduced in full below and this page ships
 inside the APK.
 
-You are reading this in Gander's own Markdown viewer.
+You are reading this in Trini Office's own Markdown viewer.
 
 ## Gander
 

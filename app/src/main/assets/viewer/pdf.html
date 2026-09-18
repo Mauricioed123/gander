@@ -512,7 +512,7 @@ function vwNeedsNewerWebView(have, needs, locked) {
   if (locked) {
     vwError(
       "PDFs cannot be shown on this phone",
-      "Every other format Gander opens still works. " +
+      "Every other format Trini Office opens still works. " +
       // No floor is written here. The number arrives in the query string so that
       // raising PDFJS_MIN_CHROMIUM_MAJOR stays a one-constant edit, which means
       // the sentence has to work without it too.
@@ -527,14 +527,14 @@ function vwNeedsNewerWebView(have, needs, locked) {
   }
   vwError(
     "Android System WebView is too old to show PDFs",
-    "Gander draws PDFs using Android System WebView, the browser engine built " +
+    "Trini Office draws PDFs using Android System WebView, the browser engine built " +
     "into your phone. " +
     (have && needs
       ? "This one is version " + have + " and the PDF renderer needs " +
         needs + " or newer. "
       : "This one is too old to run the PDF renderer. ") +
     "Updating Android System WebView and reopening the file will fix it. " +
-    "Every other format Gander opens still works."
+    "Every other format Trini Office opens still works."
   );
 }
 
@@ -2931,10 +2931,10 @@ function vwFailure(e) {
      already the right answer. */
   if (/encryption|crypto/i.test(String(e && e.message))) {
     return [
-      "This PDF is protected in a way Gander cannot open",
+      "This PDF is protected in a way Trini Office cannot open",
       "It is encrypted, but not with the password scheme its renderer reads, so " +
       "there is nothing you could type here that would open it. Every other " +
-      "format Gander opens still works."
+      "format Trini Office opens still works."
     ];
   }
   switch (e && e.name) {
@@ -2942,18 +2942,18 @@ function vwFailure(e) {
       return [
         "This PDF could not be unlocked",
         "The password was not accepted. If the file opens elsewhere, its " +
-        "protection is of a kind Gander cannot read yet."
+        "protection is of a kind Trini Office cannot read yet."
       ];
     case "InvalidPDFException":
       return [
         "This file is not a PDF that can be read",
         "It is either damaged or not a PDF at all, whatever it happens to be " +
-        "named. Every other format Gander opens still works."
+        "named. Every other format Trini Office opens still works."
       ];
     case "ResponseException":
       return [
         "This PDF could not be read to the end",
-        "Gander lost access to the file part way through loading it. Opening it " +
+        "Trini Office lost access to the file part way through loading it. Opening it " +
         "again usually settles this."
       ];
     default:
