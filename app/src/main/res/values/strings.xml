@@ -71,7 +71,7 @@
     <!-- What the readout says while the thumb is dragged through anything that is not
          a PDF, where nothing else knows how far in you are -->
     <string name="scroll_position">%1$d%%</string>
-    <string name="scroll_position_spoken">%1$d por ciento del documento</string>
+    <string name="scroll_position_spoken">%1$d%% del documento</string>
     <string name="open_with_hint">Consejo: en tu administrador de archivos, toca cualquier archivo y elige Abrir con &gt; Trini Office.</string>
     <string name="back">Atrás</string>
     <string name="about_gander">Acerca de Trini Office</string>
