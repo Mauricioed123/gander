@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Gander</string>
+    <string name="app_name">Trini Office</string>
     <!-- The long form, kept for the About dialog, which is where someone who wants the
          detail goes looking. The first run gets welcome_headline instead. -->
     <string name="main_subtitle">Open and view documents, spreadsheets, slides and photos. Everything renders on your phone, nothing is uploaded.</string>
